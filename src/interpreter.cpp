@@ -4,7 +4,7 @@
 
 namespace talkheui
 {
-	runtime_status::~runtime_status()
+	runtime_state::~runtime_state()
 	{
 		for (memory* mem : memories_)
 		{
@@ -12,16 +12,16 @@ namespace talkheui
 		}
 	}
 
-	std::vector<const memory*> runtime_status::memories() const
+	std::vector<const memory*> runtime_state::memories() const
 	{
 		return std::vector<const memory*>(memories_.begin(), memories_.end());
 	}
 
-	std::vector<memory*>& runtime_status::memories() noexcept
+	std::vector<memory*>& runtime_state::memories() noexcept
 	{
 		return memories_;
 	}
-	void runtime_status::memories(std::vector<memory*> new_memories) noexcept
+	void runtime_state::memories(std::vector<memory*> new_memories) noexcept
 	{
 		memories_ = std::move(new_memories);
 	}
@@ -31,7 +31,7 @@ namespace talkheui
 {
 	interpreter::~interpreter()
 	{
-		delete status_;
+		delete state_;
 	}
 
 	interpreter::interpreter(std::string name) noexcept
@@ -59,17 +59,17 @@ namespace talkheui
 	{
 		return name_;
 	}
-	const runtime_status* interpreter::status() const noexcept
+	const runtime_state* interpreter::state() const noexcept
 	{
-		return status_;
+		return state_;
 	}
-	runtime_status* interpreter::status() noexcept
+	runtime_state* interpreter::state() noexcept
 	{
-		return status_;
+		return state_;
 	}
-	void interpreter::status(runtime_status* new_status) noexcept
+	void interpreter::status(runtime_state* new_state) noexcept
 	{
-		delete status_;
-		status_ = new_status;
+		delete state_;
+		state_ = new_state;
 	}
 }

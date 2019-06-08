@@ -7,16 +7,19 @@
 
 namespace talkheui
 {
-	class runtime_status
+	class runtime_state
 	{
 	public:
-		virtual ~runtime_status();
+		virtual ~runtime_state();
 
 	protected:
-		runtime_status() noexcept = default;
+		runtime_state() noexcept = default;
 
 	public:
-		runtime_status& operator=(const runtime_status&) = delete;
+		runtime_state& operator=(const runtime_state&) = delete;
+
+	public:
+		virtual void reset() = 0;
 
 	public:
 		std::vector<const memory*> memories() const;
@@ -48,12 +51,12 @@ namespace talkheui
 
 	public:
 		std::string name() const;
-		const runtime_status* status() const noexcept;
-		runtime_status* status() noexcept;
-		void status(runtime_status* new_status) noexcept;
+		const runtime_state* state() const noexcept;
+		runtime_state* state() noexcept;
+		void status(runtime_state* new_state) noexcept;
 
 	private:
 		std::string name_;
-		runtime_status* status_ = nullptr;
+		runtime_state* state_ = nullptr;
 	};
 }
