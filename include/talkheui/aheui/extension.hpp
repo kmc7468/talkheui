@@ -1,6 +1,9 @@
 #pragma once
 
 #include <talkheui/extension.hpp>
+#include <talkheui/zip.hpp>
+
+#include <nlohmann/json.hpp>
 
 namespace talkheui::aheui
 {
@@ -24,6 +27,9 @@ namespace talkheui::aheui
 	public:
 		extension& operator=(const extension& extension);
 		extension& operator=(extension&& extension) noexcept;
+
+	protected:
+		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
 
 	public:
 		extension_type type() const noexcept;

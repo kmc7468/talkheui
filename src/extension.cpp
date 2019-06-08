@@ -1,7 +1,11 @@
+#ifdef _MSC_VER
+#pragma warning(disable: 4244)
+#endif
+
 #include <talkheui/extension.hpp>
 
-#include <nlohmann/json.hpp>
-
+#include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <memory>
 #include <utility>
@@ -52,14 +56,21 @@ namespace talkheui
 		const std::string_view ext_info_data_str(static_cast<const char*>(ext_info_data), ext_info_data_size);
 		const nlohmann::json ext_info_data_json = nlohmann::json::parse(ext_info_data_str);
 
+		info_.name = ext_info_data_json["name"];
+		info_.target = ext_info_data_json["target"];
+
+		if (info_.target.empty()) throw std::runtime_error("invalid extension");
+
+		std::transform(info_.target.begin(), info_.target.end(), info_.target.begin(), std::tolower);
+		info_.target[0] = std::toupper(info_.target.front());
+
 		for (auto iter = ext_info_data_json.begin(); iter < ext_info_data_json.end(); ++iter)
 		{
-			if (iter.key() == "name") info_.name = *iter;
-			else if (iter.key() == "developer") info_.developer = *iter;
+			if (iter.key() == "developer") info_.developer = *iter;
 			else if (iter.key() == "description") info_.description = *iter;
 		}
 
-		open_priv(zip);
+		open_priv(zip, ext_info_data_json);
 	}
 
 	std::string extension::name() const
@@ -73,5 +84,9 @@ namespace talkheui
 	std::string extension::description() const
 	{
 		return info_.description;
+	}
+	std::string talkheui::extension::target() const
+	{
+		return info_.target;
 	}
 }

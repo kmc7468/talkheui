@@ -2,6 +2,7 @@
 
 #include <talkheui/zip.hpp>
 
+#include <nlohmann/json.hpp>
 #include <string>
 
 namespace talkheui
@@ -11,6 +12,7 @@ namespace talkheui
 		std::string name;
 		std::string developer;
 		std::string description;
+		std::string target;
 	};
 
 	class extension
@@ -32,12 +34,13 @@ namespace talkheui
 		void open(const std::string& path);
 
 	protected:
-		virtual void open_priv(const zip_reader& extension) = 0;
+		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) = 0;
 
 	public:
 		std::string name() const;
 		std::string developer() const;
 		std::string description() const;
+		std::string target() const;
 
 	private:
 		extension_info info_;
