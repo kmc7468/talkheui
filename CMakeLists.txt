@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories("./include")
-file(GLOB_RECURSE SOURCE_LIST "./src/*.cpp")
+include_directories("./include" "./extlib")
+file(GLOB_RECURSE SOURCE_LIST "./src/*.cpp" "./extlib/*.c" "./extlib/*.cpp")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 
 add_executable(${PROJECT_NAME} ${SOURCE_LIST})
