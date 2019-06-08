@@ -1,5 +1,7 @@
 #pragma once
 
+#include <talkheui/zip.hpp>
+
 #include <string>
 
 namespace talkheui
@@ -25,6 +27,12 @@ namespace talkheui
 	protected:
 		extension& operator=(const extension& extension);
 		extension& operator=(extension&& extension) noexcept;
+
+	public:
+		void open(const std::string& path);
+
+	protected:
+		virtual void open_priv(const zip_reader& extension) = 0;
 
 	public:
 		std::string name() const;

@@ -45,13 +45,14 @@ namespace talkheui
 
 	public:
 		zip_reader& operator=(zip_reader&& reader) noexcept;
-		zip_reader_entry operator[](std::size_t index) noexcept;
+		zip_reader_entry operator[](std::size_t index) const noexcept;
 
 	public:
 		void open(const std::string& path);
 		void close() noexcept;
 		
-		zip_reader_entry at(std::size_t index);
+		zip_reader_entry find(const std::string& name) const;
+		zip_reader_entry at(std::size_t index) const;
 		std::size_t size() const noexcept;
 
 	public:

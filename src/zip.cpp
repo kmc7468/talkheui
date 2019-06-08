@@ -81,7 +81,7 @@ namespace talkheui
 		archive_ = std::move(reader.archive_);
 		return *this;
 	}
-	zip_reader_entry zip_reader::operator[](std::size_t index) noexcept
+	zip_reader_entry zip_reader::operator[](std::size_t index) const noexcept
 	{
 		assert(index < size());
 		return zip_reader_entry(archive_, index);
@@ -102,7 +102,17 @@ namespace talkheui
 		archive_.reset();
 	}
 
-	zip_reader_entry zip_reader::at(std::size_t index)
+	zip_reader_entry zip_reader::find(const std::string& name) const
+	{
+		for (std::size_t i = 0; i < size(); ++i)
+		{
+			const zip_reader_entry entry = (*this)[i];
+			if (entry.filename() == name) return entry;
+		}
+
+		throw std::runtime_error("failed to find the zip entry");
+	}
+	zip_reader_entry zip_reader::at(std::size_t index) const
 	{
 		if (index >= size()) throw std::out_of_range("the argument 'index' is out of range");
 		return zip_reader_entry(archive_, index);
