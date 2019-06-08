@@ -80,6 +80,66 @@ namespace talkheui::aheui
 	}
 	void stack::swap() noexcept
 	{
-		std::iter_swap(data_.begin(), data_.end() - 1);
+		std::iter_swap(data_.end() - 1, data_.end() - 2);
+	}
+}
+
+namespace talkheui::aheui
+{
+	queue::queue()
+		: storage("Queue")
+	{}
+	queue::queue(const queue& queue)
+		: storage(queue), data_(queue.data_)
+	{}
+	queue::queue(queue&& queue) noexcept
+		: storage(std::move(queue)), data_(std::move(queue.data_))
+	{}
+
+	queue& queue::operator=(const queue& queue)
+	{
+		storage::operator=(queue);
+		data_ = queue.data_;
+		return *this;
+	}
+	queue& queue::operator=(queue&& queue) noexcept
+	{
+		storage::operator=(std::move(queue));
+		data_ = std::move(queue.data_);
+		return *this;
+	}
+
+	std::size_t queue::bytes() const noexcept
+	{
+		return data_.size() * sizeof(long long);
+	}
+	std::size_t queue::size() const noexcept
+	{
+		return data_.size();
+	}
+	void queue::push(long long value)
+	{
+		data_.push_back(value);
+	}
+	long long queue::pop()
+	{
+		const long long result = data_.front();
+		return data_.pop_front(), result;
+	}
+	void queue::unpop(long long value)
+	{
+		data_.push_front(value);
+	}
+	void queue::copy()
+	{
+		data_.push_front(data_.front());
+	}
+	void queue::move(long long value)
+	{
+		data_.push_back(value);
+	}
+	void queue::swap() noexcept
+	{
+		std::iter_swap(data_.begin(), data_.begin() + 1);
 	}
 }

@@ -54,4 +54,30 @@ namespace talkheui::aheui
 	private:
 		std::deque<long long> data_;
 	};
+
+	class queue final : public storage
+	{
+	public:
+		queue();
+		queue(const queue& queue);
+		queue(queue&& stack) noexcept;
+		virtual ~queue() override = default;
+
+	public:
+		queue& operator=(const queue& queue);
+		queue& operator=(queue&& queue) noexcept;
+
+	public:
+		virtual std::size_t bytes() const noexcept override;
+		virtual std::size_t size() const noexcept override;
+		virtual void push(long long value) override;
+		virtual long long pop() override;
+		virtual void unpop(long long value) override;
+		virtual void copy() override;
+		virtual void move(long long value) override;
+		virtual void swap() noexcept override;
+
+	private:
+		std::deque<long long> data_;
+	};
 }
