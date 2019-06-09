@@ -2,6 +2,7 @@
 
 #include <talkheui/zip.hpp>
 
+#include <map>
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -15,19 +16,37 @@ namespace talkheui
 		std::string target;
 	};
 
+	class extension_resources final
+	{
+	public:
+		extension_resources() = default;
+		extension_resources(extension_resources&& resources) noexcept;
+		~extension_resources() = default;
+
+	public:
+		extension_resources& operator=(extension_resources&& resources) noexcept;
+		zip_reader_entry operator[](const std::string& name) const;
+
+	public:
+		std::map<std::string, zip_reader_entry>::const_iterator find(const std::string& name) const;
+		void add(std::string name, zip_reader_entry resource);
+		std::map<std::string, zip_reader_entry> list() const;
+
+	private:
+		std::map<std::string, zip_reader_entry> resources_;
+	};
+
 	class extension
 	{
 	public:
 		virtual ~extension() = default;
 
 	protected:
-		extension() noexcept = default;
-		extension(extension_info info) noexcept;
-		extension(const extension& extension);
+		extension() = default;
+		extension(extension_info info);
 		extension(extension&& extension) noexcept;
 
 	protected:
-		extension& operator=(const extension& extension);
 		extension& operator=(extension&& extension) noexcept;
 
 	public:
@@ -41,8 +60,13 @@ namespace talkheui
 		std::string developer() const;
 		std::string description() const;
 		std::string target() const;
+		const extension_resources& resources() const;
 
 	private:
 		extension_info info_;
+		extension_resources resources_;
+		zip_reader zip_;
 	};
+
+	extension* open_extension(const std::string& path);
 }
