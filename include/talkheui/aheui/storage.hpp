@@ -1,5 +1,6 @@
 #pragma once
 
+#include <talkheui/aheui/extension.hpp>
 #include <talkheui/memory.hpp>
 
 #include <deque>
@@ -23,7 +24,6 @@ namespace talkheui::aheui
 	public:
 		virtual void push(long long value) = 0;
 		virtual long long pop() = 0;
-		virtual void unpop(long long value) = 0;
 		virtual void copy() = 0;
 		virtual void move(long long value) = 0;
 		virtual void swap() noexcept = 0;
@@ -46,9 +46,7 @@ namespace talkheui::aheui
 		virtual std::size_t size() const noexcept override;
 		virtual void push(long long value) override;
 		virtual long long pop() override;
-		virtual void unpop(long long value) override;
 		virtual void copy() override;
-		virtual void move(long long value) override;
 		virtual void swap() noexcept override;
 
 	private:
@@ -60,7 +58,7 @@ namespace talkheui::aheui
 	public:
 		queue();
 		queue(const queue& queue);
-		queue(queue&& stack) noexcept;
+		queue(queue&& queue) noexcept;
 		virtual ~queue() override = default;
 
 	public:
@@ -72,12 +70,34 @@ namespace talkheui::aheui
 		virtual std::size_t size() const noexcept override;
 		virtual void push(long long value) override;
 		virtual long long pop() override;
-		virtual void unpop(long long value) override;
 		virtual void copy() override;
-		virtual void move(long long value) override;
 		virtual void swap() noexcept override;
 
 	private:
 		std::deque<long long> data_;
+	};
+
+	class pipe final : public storage
+	{
+	public:
+		pipe(extension* extension);
+		pipe(pipe&& pipe) noexcept;
+		virtual ~pipe() override = default;
+
+	public:
+		pipe& operator=(pipe&& pipe) noexcept;
+
+	public:
+		virtual std::size_t bytes() const noexcept override;
+		virtual std::size_t size() const noexcept override;
+		virtual void push(long long value) override;
+		virtual long long pop() override;
+		virtual void copy() override;
+		virtual void swap() noexcept override;
+
+	private:
+		extension* extension_;
+		long long recent_pushed_ = 0;
+		std::size_t push_count_ = 0;
 	};
 }

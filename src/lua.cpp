@@ -27,4 +27,27 @@ namespace talkheui
 		engine.state_ = nullptr;
 		return *this;
 	}
+
+	void lua_engine::load_script(const std::string_view& script)
+	{
+		luaL_loadbuffer(state_, script.data(), script.size(), script.data());
+		lua_pcall(state_, 0, 0, 0);
+	}
+	void lua_engine::getglobal(const std::string& name)
+	{
+		lua_getglobal(state_, name.c_str());
+	}
+	void lua_engine::push(long long number)
+	{
+		lua_pushinteger(state_, number);
+	}
+	long long lua_engine::pop_integer()
+	{
+		const long long result = lua_tointeger(state_, -1);
+		return lua_pop(state_, 1), result;
+	}
+	void lua_engine::call(int param_size, int ret_size)
+	{
+		lua_call(state_, param_size, ret_size);
+	}
 }

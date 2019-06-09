@@ -1,6 +1,7 @@
 #pragma once
 
 #include <talkheui/extension.hpp>
+#include <talkheui/lua.hpp>
 #include <talkheui/zip.hpp>
 
 #include <nlohmann/json.hpp>
@@ -26,6 +27,10 @@ namespace talkheui::aheui
 	protected:
 		extension& operator=(extension&& extension) noexcept;
 
+	public:
+		virtual void send(long long value) = 0;
+		virtual long long receive() = 0;
+
 	protected:
 		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
 
@@ -47,8 +52,15 @@ namespace talkheui::aheui
 	public:
 		lua_extension& operator=(lua_extension&& extension) noexcept;
 
+	public:
+		virtual void send(long long value) override;
+		virtual long long receive() override;
+
 	protected:
 		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
+
+	private:
+		lua_engine lua_;
 	};
 
 	class aheui_extension final : public extension
@@ -61,6 +73,10 @@ namespace talkheui::aheui
 
 	public:
 		aheui_extension& operator=(aheui_extension&& extension) noexcept;
+
+	public:
+		virtual void send(long long value) override;
+		virtual long long receive() override;
 
 	protected:
 		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
