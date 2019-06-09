@@ -11,4 +11,6 @@ namespace talkheui
 	std::string utf16to8(const std::u16string_view& utf16);
 	std::u16string utf32to16(const std::u32string_view& utf32);
 	std::u32string utf16to32(const std::u16string_view& utf16);
+
+	std::string read_as_utf8(const std::string& path);
 }
