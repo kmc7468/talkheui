@@ -1,5 +1,6 @@
 #pragma once
 
+#include <istream>
 #include <string>
 #include <string_view>
 
@@ -13,4 +14,5 @@ namespace talkheui
 	std::u32string utf16to32(const std::u16string_view& utf16);
 
 	std::string read_as_utf8(const std::string& path);
+	std::string read_as_utf8(std::istream& stream);
 }

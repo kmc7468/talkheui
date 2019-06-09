@@ -1,5 +1,7 @@
 #include <talkheui/aheui/storage.hpp>
 
+#include <talkheui/aheui/extension.hpp>
+
 #include <utility>
 
 namespace talkheui::aheui

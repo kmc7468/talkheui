@@ -18,7 +18,7 @@ namespace
 		utf32be,
 	};
 
-	encoding detect_encoding(std::ifstream& stream)
+	encoding detect_encoding(std::istream& stream)
 	{
 		static constexpr std::uint8_t utf8_bom[] = { 0xEF, 0xBB, 0xBF };
 		static constexpr std::uint8_t utf16_bom[] = { 0xFF, 0xFE };
@@ -124,12 +124,16 @@ namespace talkheui
 		std::ifstream file(path);
 		if (!file) throw std::runtime_error("failed to open the file");
 
-		const encoding enc = detect_encoding(file);
+		return read_as_utf8(file);
+	}
+	std::string talkheui::read_as_utf8(std::istream& stream)
+	{
+		const encoding enc = detect_encoding(stream);
 
-		const std::streampos pos = file.tellg();
-		file.seekg(0, std::ios::end);
-		const std::streamoff length = file.tellg() - pos;
-		file.seekg(pos, std::ios::beg);
+		const std::streampos pos = stream.tellg();
+		stream.seekg(0, std::ios::end);
+		const std::streamoff length = stream.tellg() - pos;
+		stream.seekg(pos, std::ios::beg);
 
 		static const endian end = detect_endian();
 
@@ -138,7 +142,7 @@ namespace talkheui
 		case encoding::utf8:
 		{
 			std::string result(static_cast<std::size_t>(length), 0);
-			file.read(result.data(), static_cast<std::streamsize>(result.size()));
+			stream.read(result.data(), static_cast<std::streamsize>(result.size()));
 			const std::string::iterator invalid_iter = utf8::find_invalid(result.begin(), result.end());
 
 			if (invalid_iter != result.end()) throw std::runtime_error("invalid encoding");
@@ -151,14 +155,14 @@ namespace talkheui
 			if (static_cast<std::size_t>(length - pos) % 2) throw std::runtime_error("invalid encoding");
 
 			std::u16string result(static_cast<std::size_t>(length) / 2, 0);
-			file.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(result.size()) * 2);
+			stream.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(result.size()) * 2);
 
 			if ((end == endian::little && enc == encoding::utf16be) || (end == endian::big && enc == encoding::utf16))
 			{
 				std::transform(result.begin(), result.end(), result.begin(), [](char16_t c)
-				{
-					return static_cast<char16_t>(((c & 0xFF) << 8) | ((c & 0xFF00) >> 8));
-				});
+					{
+						return static_cast<char16_t>(((c & 0xFF) << 8) | ((c & 0xFF00) >> 8));
+					});
 			}
 
 			return utf16to8(result);
@@ -170,14 +174,14 @@ namespace talkheui
 			if (static_cast<std::size_t>(length - pos) % 4) throw std::runtime_error("invalid encoding");
 
 			std::u32string result(static_cast<std::size_t>(length) / 4, 0);
-			file.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(result.size()) * 4);
+			stream.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(result.size()) * 4);
 
 			if ((end == endian::little && enc == encoding::utf32be) || (end == endian::big && enc == encoding::utf32))
 			{
 				std::transform(result.begin(), result.end(), result.begin(), [](char32_t c)
-				{
-					return static_cast<char32_t>(((c & 0xFF000000) >> 24) | ((c & 0xFF0000) >> 8) | ((c & 0xFF00) << 8) | ((c & 0xFF) << 24));
-				});
+					{
+						return static_cast<char32_t>(((c & 0xFF000000) >> 24) | ((c & 0xFF0000) >> 8) | ((c & 0xFF00) << 8) | ((c & 0xFF) << 24));
+					});
 			}
 
 			return utf32to8(result);

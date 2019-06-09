@@ -39,21 +39,19 @@ namespace talkheui
 
 	protected:
 		interpreter(std::string name) noexcept;
-		interpreter(const interpreter& interpreter);
 		interpreter(interpreter&& interpreter) noexcept;
 
 	protected:
-		interpreter& operator=(const interpreter& interpreter);
 		interpreter& operator=(interpreter&& interpreter) noexcept;
 
 	public:
-		virtual void reset() = 0;
+		void reset();
 
 	public:
 		std::string name() const;
 		const runtime_state* state() const noexcept;
 		runtime_state* state() noexcept;
-		void status(runtime_state* new_state) noexcept;
+		void state(runtime_state* new_state) noexcept;
 
 	private:
 		std::string name_;

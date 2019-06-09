@@ -1,6 +1,5 @@
 #pragma once
 
-#include <talkheui/aheui/extension.hpp>
 #include <talkheui/memory.hpp>
 
 #include <deque>
@@ -25,7 +24,6 @@ namespace talkheui::aheui
 		virtual void push(long long value) = 0;
 		virtual long long pop() = 0;
 		virtual void copy() = 0;
-		virtual void move(long long value) = 0;
 		virtual void swap() noexcept = 0;
 	};
 
@@ -76,6 +74,8 @@ namespace talkheui::aheui
 	private:
 		std::deque<long long> data_;
 	};
+
+	class extension;
 
 	class pipe final : public storage
 	{

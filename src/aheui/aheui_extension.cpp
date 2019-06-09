@@ -1,11 +1,13 @@
 #ifdef _MSC_VER
-#pragma warning(disable: 4244)
+#pragma warning(disable: 4244 4996)
 #endif
 
 #include <talkheui/aheui/extension.hpp>
+#include <talkheui/encoding.hpp>
 
 #include <algorithm>
 #include <cctype>
+#include <strstream>
 
 namespace
 {
@@ -37,7 +39,7 @@ namespace talkheui::aheui
 		return *this;
 	}
 
-	void extension::open_priv(const zip_reader& extension, const nlohmann::json& extension_info)
+	void extension::open_priv(const zip_reader&, const nlohmann::json& extension_info)
 	{
 		std::string ext_type_str = extension_info["type"];
 		std::transform(ext_type_str.begin(), ext_type_str.end(), ext_type_str.begin(), std::tolower);
@@ -114,12 +116,15 @@ namespace talkheui::aheui
 		open(path);
 	}
 	aheui_extension::aheui_extension(aheui_extension&& extension) noexcept
-		: extension(std::move(extension))
+		: extension(std::move(extension)),
+		evt_send_(std::move(extension.evt_send_)), evt_receive_(std::move(extension.evt_receive_))
 	{}
 
 	aheui_extension& aheui_extension::operator=(aheui_extension&& extension) noexcept
 	{
 		extension::operator=(std::move(extension));
+		evt_send_ = std::move(extension.evt_send_);
+		evt_receive_ = std::move(extension.evt_receive_);
 		return *this;
 	}
 
@@ -136,6 +141,24 @@ namespace talkheui::aheui
 	void aheui_extension::open_priv(const zip_reader& extension, const nlohmann::json& extension_info)
 	{
 		extension::open_priv(extension, extension_info);
+
+		const nlohmann::json events = extension_info["events"];
+		
+		const std::string evt_send_name = events["send"];
+		const zip_reader_entry evt_send = extension.find(evt_send_name);
+		std::size_t evt_send_data_size;
+		const void* evt_send_data = evt_send.extract(&evt_send_data_size);
+		const std::unique_ptr<const void, free_> evt_send_data_raii(evt_send_data);
+		std::istrstream evt_send_data_stream(static_cast<const char*>(evt_send_data), static_cast<int>(evt_send_data_size));
+		evt_send_ = utf8to32(read_as_utf8(evt_send_data_stream));
+
+		const std::string evt_receive_name = events["receive"];
+		const zip_reader_entry evt_receive = extension.find(evt_receive_name);
+		std::size_t evt_receive_data_size;
+		const void* evt_receive_data = evt_receive.extract(&evt_receive_data_size);
+		const std::unique_ptr<const void, free_> evt_receive_data_raii(evt_receive_data);
+		std::istrstream evt_receive_data_stream(static_cast<const char*>(evt_receive_data), static_cast<int>(evt_receive_data_size));
+		evt_receive_ = utf8to32(read_as_utf8(evt_receive_data_stream));
 	}
 }
 
@@ -154,7 +177,7 @@ namespace talkheui::aheui
 
 		return open_extension(path, zip, ext_info_data_json);
 	}
-	extension* open_extension(const std::string& path, const zip_reader& extension, const nlohmann::json& extension_info)
+	extension* open_extension(const std::string& path, const zip_reader&, const nlohmann::json& extension_info)
 	{
 		std::string ext_type_str = extension_info["type"];
 		std::transform(ext_type_str.begin(), ext_type_str.end(), ext_type_str.begin(), std::tolower);

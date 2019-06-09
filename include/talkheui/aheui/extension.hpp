@@ -1,5 +1,7 @@
 #pragma once
 
+#include <talkheui/aheui/codeplane.hpp>
+#include <talkheui/aheui/interpreter.hpp>
 #include <talkheui/extension.hpp>
 #include <talkheui/lua.hpp>
 #include <talkheui/zip.hpp>
@@ -80,6 +82,10 @@ namespace talkheui::aheui
 
 	protected:
 		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
+
+	private:
+		codeplane evt_send_, evt_receive_;
+		interpreter interpreter_;
 	};
 	
 	extension* open_extension(const std::string& path);

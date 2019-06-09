@@ -37,22 +37,23 @@ namespace talkheui
 	interpreter::interpreter(std::string name) noexcept
 		: name_(std::move(name))
 	{}
-	interpreter::interpreter(const interpreter& interpreter)
-		: name_(interpreter.name_)
-	{}
 	interpreter::interpreter(interpreter&& interpreter) noexcept
-		: name_(std::move(interpreter.name_))
-	{}
-
-	interpreter& interpreter::operator=(const interpreter& interpreter)
+		: name_(std::move(interpreter.name_)), state_(interpreter.state_)
 	{
-		name_ = interpreter.name_;
-		return *this;
+		interpreter.state_ = nullptr;
 	}
+
 	interpreter& interpreter::operator=(interpreter&& interpreter) noexcept
 	{
 		name_ = std::move(interpreter.name_);
+		state_ = interpreter.state_;
+		interpreter.state_ = nullptr;
 		return *this;
+	}
+
+	void interpreter::reset()
+	{
+		state_->reset();
 	}
 
 	std::string interpreter::name() const
@@ -67,7 +68,7 @@ namespace talkheui
 	{
 		return state_;
 	}
-	void interpreter::status(runtime_state* new_state) noexcept
+	void interpreter::state(runtime_state* new_state) noexcept
 	{
 		delete state_;
 		state_ = new_state;
