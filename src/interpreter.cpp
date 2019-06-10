@@ -53,6 +53,11 @@ namespace talkheui
 
 	void interpreter::reset()
 	{
+		reset_state();
+		unload_script();
+	}
+	void interpreter::reset_state()
+	{
 		state_->reset();
 	}
 

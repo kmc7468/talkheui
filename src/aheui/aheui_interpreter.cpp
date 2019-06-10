@@ -1,5 +1,7 @@
 #include <talkheui/aheui/interpreter.hpp>
 
+#include <talkheui/encoding.hpp>
+
 #include <utility>
 
 namespace talkheui::aheui
@@ -37,5 +39,25 @@ namespace talkheui::aheui
 	{
 		talkheui::interpreter::operator=(std::move(interpreter));
 		return *this;
+	}
+
+	void interpreter::unload_script()
+	{
+		script_.clear();
+	}
+
+	bool interpreter::is_loaded_script() const
+	{
+		return !script_.empty();
+	}
+	void interpreter::load_script(const std::string_view& script)
+	{
+		const std::u32string script_utf32 = utf8to32(script);
+		script_.parse(script_utf32);
+	}
+
+	const codeplane& interpreter::script() const noexcept
+	{
+		return script_;
 	}
 }

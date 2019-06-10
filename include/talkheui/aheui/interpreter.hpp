@@ -1,7 +1,10 @@
 #pragma once
 
 #include <talkheui/interpreter.hpp>
+#include <talkheui/aheui/codeplane.hpp>
 #include <talkheui/aheui/storage.hpp>
+
+#include <string_view>
 
 namespace talkheui::aheui
 {
@@ -33,5 +36,17 @@ namespace talkheui::aheui
 
 	public:
 		interpreter& operator=(interpreter&& interpreter) noexcept;
+
+	public:
+		virtual void unload_script() override;
+
+		virtual bool is_loaded_script() const override;
+		virtual void load_script(const std::string_view& script);
+
+	public:
+		const codeplane& script() const noexcept;
+
+	private:
+		codeplane script_;
 	};
 }

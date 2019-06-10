@@ -22,7 +22,12 @@ namespace talkheui::aheui
 
 	void codeplane::clear() noexcept
 	{
+		lines_.clear();
 		graphemes_.clear();
+	}
+	bool codeplane::empty() const noexcept
+	{
+		return lines_.empty();
 	}
 	void codeplane::parse(const std::u32string& code)
 	{

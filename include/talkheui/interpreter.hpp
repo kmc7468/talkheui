@@ -3,6 +3,7 @@
 #include <talkheui/memory.hpp>
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace talkheui
@@ -46,6 +47,11 @@ namespace talkheui
 
 	public:
 		void reset();
+		void reset_state();
+		virtual void unload_script() = 0;
+
+		virtual bool is_loaded_script() const = 0;
+		virtual void load_script(const std::string_view& script) = 0;
 
 	public:
 		std::string name() const;

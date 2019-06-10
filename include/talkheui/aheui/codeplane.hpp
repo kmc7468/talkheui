@@ -19,6 +19,7 @@ namespace talkheui::aheui
 
 	public:
 		void clear() noexcept;
+		bool empty() const noexcept;
 		void parse(const std::u32string& code);
 
 	private:
