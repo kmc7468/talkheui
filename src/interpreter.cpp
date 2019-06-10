@@ -1,5 +1,6 @@
 #include <talkheui/interpreter.hpp>
 
+#include <stdexcept>
 #include <utility>
 
 namespace talkheui
@@ -38,7 +39,7 @@ namespace talkheui
 		: name_(std::move(name))
 	{}
 	interpreter::interpreter(interpreter&& interpreter) noexcept
-		: name_(std::move(interpreter.name_)), state_(interpreter.state_)
+		: name_(std::move(interpreter.name_)), state_(interpreter.state_), extensions_(std::move(interpreter.extensions_))
 	{
 		interpreter.state_ = nullptr;
 	}
@@ -47,6 +48,7 @@ namespace talkheui
 	{
 		name_ = std::move(interpreter.name_);
 		state_ = interpreter.state_;
+		extensions_ = std::move(interpreter.extensions_);
 		interpreter.state_ = nullptr;
 		return *this;
 	}
@@ -59,6 +61,20 @@ namespace talkheui
 	void interpreter::reset_state()
 	{
 		state_->reset();
+	}
+
+	void interpreter::load_extension(const std::string& path)
+	{
+		if (extensions_.find(path) != extensions_.end()) throw std::runtime_error("already loaded extension");
+
+		extensions_.insert(std::make_pair(path, open_extension(path)));
+	}
+	void interpreter::unload_extension(const std::string& path)
+	{
+		auto iter = extensions_.find(path);
+		if (iter == extensions_.end()) throw std::runtime_error("failed to find the extension");
+
+		extensions_.erase(iter);
 	}
 
 	std::string interpreter::name() const
@@ -77,5 +93,9 @@ namespace talkheui
 	{
 		delete state_;
 		state_ = new_state;
+	}
+	std::map<std::string, const extension*> interpreter::extensions() const
+	{
+		return std::map<std::string, const extension*>(extensions_.begin(), extensions_.end());
 	}
 }

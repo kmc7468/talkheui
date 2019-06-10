@@ -1,7 +1,9 @@
 #pragma once
 
+#include <talkheui/extension.hpp>
 #include <talkheui/memory.hpp>
 
+#include <map>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -53,14 +55,19 @@ namespace talkheui
 		virtual bool is_loaded_script() const = 0;
 		virtual void load_script(const std::string_view& script) = 0;
 
+		void load_extension(const std::string& path);
+		void unload_extension(const std::string& path);
+
 	public:
 		std::string name() const;
 		const runtime_state* state() const noexcept;
 		runtime_state* state() noexcept;
 		void state(runtime_state* new_state) noexcept;
+		std::map<std::string, const extension*> extensions() const;
 
 	private:
 		std::string name_;
 		runtime_state* state_ = nullptr;
+		std::map<std::string, extension*> extensions_;
 	};
 }
