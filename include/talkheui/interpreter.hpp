@@ -23,6 +23,7 @@ namespace talkheui
 
 	public:
 		virtual void reset() = 0;
+		virtual void reset_step() = 0;
 
 	public:
 		std::vector<const memory*> memories() const;
@@ -50,13 +51,20 @@ namespace talkheui
 	public:
 		void reset();
 		void reset_state();
+		void reset_step();
 		virtual void unload_script() = 0;
 
 		virtual bool is_loaded_script() const = 0;
-		virtual void load_script(const std::string_view& script) = 0;
+		void load_script(const std::string_view& script);
+		virtual void run_script() = 0;
+		virtual void run_script_step() = 0;
+		void run(const std::string_view& script);
 
 		void load_extension(const std::string& path);
 		void unload_extension(const std::string& path);
+
+	protected:
+		virtual void load_script_priv(const std::string_view& script) = 0;
 
 	public:
 		std::string name() const;

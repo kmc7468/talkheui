@@ -62,6 +62,21 @@ namespace talkheui
 	{
 		state_->reset();
 	}
+	void interpreter::reset_step()
+	{
+		state_->reset_step();
+	}
+
+	void interpreter::load_script(const std::string_view& script)
+	{
+		if (is_loaded_script()) unload_script();
+		load_script_priv(script);
+	}
+	void interpreter::run(const std::string_view& script)
+	{
+		load_script(script);
+		run_script();
+	}
 
 	void interpreter::load_extension(const std::string& path)
 	{
