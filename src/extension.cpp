@@ -86,7 +86,7 @@ namespace talkheui
 
 		if (info_.target.empty()) throw std::runtime_error("invalid extension");
 
-		std::transform(info_.target.begin(), info_.target.end(), info_.target.begin(), std::tolower);
+		std::transform(info_.target.begin(), info_.target.end(), info_.target.begin(), [](char c){ return std::tolower(c); });
 		info_.target[0] = std::toupper(info_.target.front());
 
 		for (auto iter = ext_info_data_json.begin(); iter != ext_info_data_json.end(); ++iter)
@@ -145,7 +145,7 @@ namespace talkheui
 		const nlohmann::json ext_info_data_json = nlohmann::json::parse(ext_info_data_str);
 
 		std::string target = ext_info_data_json["target"];
-		std::transform(target.begin(), target.end(), target.begin(), std::tolower);
+		std::transform(target.begin(), target.end(), target.begin(), [](char c){ return std::tolower(c); });
 		target[0] = std::toupper(target.front());
 
 		if (target == "Aheui") return aheui::open_extension(path, zip, ext_info_data_json);

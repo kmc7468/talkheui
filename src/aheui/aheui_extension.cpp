@@ -42,7 +42,7 @@ namespace talkheui::aheui
 	void extension::open_priv(const zip_reader&, const nlohmann::json& extension_info)
 	{
 		std::string ext_type_str = extension_info["type"];
-		std::transform(ext_type_str.begin(), ext_type_str.end(), ext_type_str.begin(), std::tolower);
+		std::transform(ext_type_str.begin(), ext_type_str.end(), ext_type_str.begin(), [](char c){ return std::tolower(c); });
 		ext_type_str[0] = std::toupper(ext_type_str.front());
 
 		if (ext_type_str == "Lua") type_ = extension_type::lua;
@@ -67,7 +67,7 @@ namespace talkheui::aheui
 		open(path);
 	}
 	lua_extension::lua_extension(lua_extension&& extension) noexcept
-		: extension(std::move(extension)), lua_(std::move(extension.lua_))
+		: aheui::extension(std::move(extension)), lua_(std::move(extension.lua_))
 	{}
 
 	lua_extension& lua_extension::operator=(lua_extension&& extension) noexcept
@@ -116,7 +116,7 @@ namespace talkheui::aheui
 		open(path);
 	}
 	aheui_extension::aheui_extension(aheui_extension&& extension) noexcept
-		: extension(std::move(extension)),
+		: aheui::extension(std::move(extension)),
 		evt_send_(std::move(extension.evt_send_)), evt_receive_(std::move(extension.evt_receive_))
 	{}
 
@@ -180,7 +180,7 @@ namespace talkheui::aheui
 	extension* open_extension(const std::string& path, const zip_reader&, const nlohmann::json& extension_info)
 	{
 		std::string ext_type_str = extension_info["type"];
-		std::transform(ext_type_str.begin(), ext_type_str.end(), ext_type_str.begin(), std::tolower);
+		std::transform(ext_type_str.begin(), ext_type_str.end(), ext_type_str.begin(), [](char c){ return std::tolower(c); });
 		ext_type_str[0] = std::toupper(ext_type_str.front());
 
 		if (ext_type_str == "Lua") return new lua_extension(path);
