@@ -66,4 +66,9 @@ namespace talkheui::aheui
 			}
 		}
 	}
+
+	u5e::basic_grapheme<std::u32string> codeplane::at(int x, int y) const noexcept
+	{
+		return graphemes_[static_cast<std::size_t>(y)][static_cast<std::size_t>(x)];
+	}
 }

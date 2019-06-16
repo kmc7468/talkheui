@@ -22,6 +22,8 @@ namespace talkheui::aheui
 		bool empty() const noexcept;
 		void parse(const std::u32string& code);
 
+		u5e::basic_grapheme<std::u32string> at(int x, int y) const noexcept;
+
 	private:
 		std::vector<std::u32string> lines_;
 		std::vector<std::vector<u5e::basic_grapheme<std::u32string>>> graphemes_;
