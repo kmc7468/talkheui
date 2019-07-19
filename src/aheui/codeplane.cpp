@@ -64,6 +64,12 @@ namespace talkheui::aheui
 
 	u5e::basic_grapheme<std::u32string> codeplane::at(int x, int y) const noexcept
 	{
+		if (x >= at(y).size())
+		{
+			static const std::u32string dummy_str = U" ";
+			return { dummy_str.begin(), dummy_str.begin() + 1 };
+		}
+
 		return graphemes_[static_cast<std::size_t>(y)][static_cast<std::size_t>(x)];
 	}
 	const std::vector<u5e::basic_grapheme<std::u32string>>& codeplane::at(int y) const noexcept

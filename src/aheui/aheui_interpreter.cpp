@@ -416,16 +416,21 @@ namespace talkheui::aheui
 
 		s->x_ += s->dx_;
 		s->y_ += s->dy_;
+		
+		if (s->dy_ != 0)
+		{
+			const int ml = static_cast<int>(script_.max_lines());
 
-		const int ml = static_cast<int>(script_.max_lines());
+			if (s->y_ < 0) s->y_ = ml - 1;
+			else if (s->y_ >= ml) s->y_ = 0;
+		}
+		else
+		{
+			const int w = static_cast<int>(script_.at(s->y_).size());
 
-		if (s->y_ < 0) s->y_ = ml - 1;
-		else if (s->y_ >= ml) s->y_ = 0;
-
-		const int w = static_cast<int>(script_.at(s->y_).size());
-
-		if (s->x_ < 0) s->x_ = w - 1;
-		else if (s->x_ >= w) s->x_ = 0;
+			if (s->x_ < 0) s->x_ = w - 1;
+			else if (s->x_ >= w) s->x_ = 0;
+		}
 		
 		/*if (s->dx_ == 0)
 		{
