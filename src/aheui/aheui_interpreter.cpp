@@ -297,28 +297,28 @@ namespace talkheui::aheui
 				}
 				else
 				{
-					char fb;
-					std::scanf("%c", &fb);
+					unsigned char fb;
+					std::scanf("%c", reinterpret_cast<char*>(&fb));
 					if (fb < 0x80)
 					{
 						v = fb;
 					}
 					else if ((fb & 0xF0) == 0xF0)
 					{
-						char sb, tb, frb;
-						std::scanf("%c%c%c", &sb, &tb, &frb);
+						unsigned char sb, tb, frb;
+						std::scanf("%c%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb), reinterpret_cast<char*>(&frb));
 						v = ((fb & 0x07) << 18) + ((sb & 0x3F) << 12) + ((tb & 0x3F) << 6) + (frb & 0x3F);
 					}
 					else if ((fb & 0xE0) == 0xE0)
 					{
-						char sb, tb;
-						std::scanf("%c%c", &sb, &tb);
+						unsigned char sb, tb;
+						std::scanf("%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb));
 						v = ((fb & 0x0F) << 12) + ((sb & 0x3F) << 6) + (tb & 0x3F);
 					}
 					else
 					{
-						char sb;
-						std::scanf("%c", &sb);
+						unsigned char sb;
+						std::scanf("%c", reinterpret_cast<char*>(&sb));
 						v = ((fb & 0x1F) << 6) + (sb & 0x3F);
 					}
 				}
