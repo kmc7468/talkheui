@@ -2,6 +2,7 @@
 
 #include <talkheui/aheui/extension.hpp>
 
+#include <limits>
 #include <utility>
 
 namespace talkheui::aheui
@@ -136,7 +137,7 @@ namespace talkheui::aheui
 		: storage("Pipe"), extension_(extension)
 	{}
 	pipe::pipe(pipe&& pipe) noexcept
-		: storage(std::move(pipe)), extension_(pipe.extension_), recent_pushed_(pipe.recent_pushed_), push_count_(pipe.push_count_)
+		: storage(std::move(pipe)), extension_(pipe.extension_), recent_pushed_(pipe.recent_pushed_)
 	{
 		pipe.extension_ = nullptr;
 	}
@@ -146,28 +147,25 @@ namespace talkheui::aheui
 		storage::operator=(std::move(pipe));
 		extension_ = pipe.extension_;
 		recent_pushed_ = pipe.recent_pushed_;
-		push_count_ = pipe.push_count_;
 
 		pipe.extension_ = nullptr;
 		pipe.recent_pushed_ = 0;
-		pipe.push_count_ = 0;
 
 		return *this;
 	}
 
 	std::size_t pipe::bytes() const noexcept
 	{
-		return push_count_ * sizeof(long long);
+		return static_cast<std::size_t>(extension_->bytes());
 	}
 	std::size_t pipe::size() const noexcept
 	{
-		return push_count_;
+		return static_cast<std::size_t>(extension_->size());
 	}
 	void pipe::push(long long value)
 	{
 		extension_->send(value);
 		recent_pushed_ = value;
-		++push_count_;
 	}
 	long long pipe::pop()
 	{

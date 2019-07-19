@@ -98,6 +98,5 @@ namespace talkheui::aheui
 	private:
 		extension* extension_;
 		long long recent_pushed_ = 0;
-		std::size_t push_count_ = 0;
 	};
 }

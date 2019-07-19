@@ -89,6 +89,18 @@ namespace talkheui::aheui
 		lua_.call(0, 1);
 		return lua_.pop_integer();
 	}
+	long long aheui::lua_extension::size()
+	{
+		lua_.getglobal("send_size");
+		lua_.call(0, 1);
+		return lua_.pop_integer();
+	}
+	long long aheui::lua_extension::bytes()
+	{
+		lua_.getglobal("send_bytes");
+		lua_.call(0, 1);
+		return lua_.pop_integer();
+	}
 
 	void lua_extension::open_priv(const zip_reader& extension, const nlohmann::json& extension_info)
 	{
@@ -133,6 +145,16 @@ namespace talkheui::aheui
 		// TODO
 	}
 	long long aheui_extension::receive()
+	{
+		// TODO
+		return 0;
+	}
+	long long aheui_extension::size()
+	{
+		// TODO
+		return 0;
+	}
+	long long aheui_extension::bytes()
 	{
 		// TODO
 		return 0;

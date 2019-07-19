@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <string>
 #include <string_view>
 
 namespace talkheui::aheui
@@ -66,6 +67,10 @@ namespace talkheui::aheui
 		virtual bool is_loaded_script() const override;
 		virtual void run_script() override;
 		virtual void run_script_step() override;
+
+	public:
+		void construct_pipe(const std::string& path);
+		void deconstruct_pipe();
 
 	protected:
 		virtual void reset_priv() override;

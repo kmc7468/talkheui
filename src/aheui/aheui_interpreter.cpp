@@ -5,6 +5,7 @@
 #include <talkheui/encoding.hpp>
 #include <talkheui/hangul.hpp>
 
+#include <algorithm>
 #include <cstdio>
 #include <map>
 #include <string>
@@ -394,9 +395,17 @@ namespace talkheui::aheui
 			break;
 		}
 		}
+	}
 
-		int debug = 0;
-		debug = 5;
+	void interpreter::construct_pipe(const std::string& path)
+	{
+		runtime_state* const s = static_cast<runtime_state*>(state());
+		s->extension(static_cast<aheui::extension*>(const_cast<talkheui::extension*>(extensions().at(path))));
+	}
+	void interpreter::deconstruct_pipe()
+	{
+		runtime_state* const s = static_cast<runtime_state*>(state());
+		s->extension(nullptr);
 	}
 
 	void interpreter::reset_priv()
@@ -431,25 +440,6 @@ namespace talkheui::aheui
 			if (s->x_ < 0) s->x_ = w - 1;
 			else if (s->x_ >= w) s->x_ = 0;
 		}
-		
-		/*if (s->dx_ == 0)
-		{
-			int lines = 0;
-			for (int i = 0; i < script_.max_lines(); ++i)
-			{
-				if (script_.at(i).size() > s->x_) ++lines;
-				else break;
-			}
-
-			if (s->y_ < 0) s->y_ = lines + s->y_;
-			else if (s->y_ >= lines) s->y_ = s->y_ - lines;
-		}
-		else
-		{
-			const int chars = static_cast<int>(script_.at(s->y_).size());
-			if (s->x_ < 0) s->x_ = chars + s->x_;
-			else if (s->x_ >= chars) s->x_ = s->x_ - chars;
-		}*/
 	}
 	void interpreter::reverse_cursor()
 	{

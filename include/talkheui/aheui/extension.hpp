@@ -32,6 +32,8 @@ namespace talkheui::aheui
 	public:
 		virtual void send(long long value) = 0;
 		virtual long long receive() = 0;
+		virtual long long size() = 0;
+		virtual long long bytes() = 0;
 
 	protected:
 		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
@@ -57,6 +59,8 @@ namespace talkheui::aheui
 	public:
 		virtual void send(long long value) override;
 		virtual long long receive() override;
+		virtual long long size() override;
+		virtual long long bytes() override;
 
 	protected:
 		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
@@ -79,6 +83,8 @@ namespace talkheui::aheui
 	public:
 		virtual void send(long long value) override;
 		virtual long long receive() override;
+		virtual long long size() override;
+		virtual long long bytes() override;
 
 	protected:
 		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
