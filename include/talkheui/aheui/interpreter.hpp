@@ -2,12 +2,14 @@
 
 #include <talkheui/interpreter.hpp>
 #include <talkheui/aheui/codeplane.hpp>
-#include <talkheui/aheui/storage.hpp>
 
+#include <cstddef>
+#include <optional>
 #include <string_view>
 
 namespace talkheui::aheui
 {
+	class extension;
 	class interpreter;
 
 	class runtime_state final : public talkheui::runtime_state
@@ -28,14 +30,24 @@ namespace talkheui::aheui
 		virtual void reset_step() override;
 
 	public:
-		std::size_t x() const noexcept;
-		std::size_t y() const noexcept;
+		int x() const noexcept;
+		void x(int new_x) noexcept;
+		int y() const noexcept;
+		void y(int new_y) noexcept;
 		int dx() const noexcept;
+		void dx(int new_dx) noexcept;
 		int dy() const noexcept;
+		void dy(int new_dy) noexcept;
+		aheui::extension* extension() const noexcept;
+		void extension(aheui::extension* new_extension);
+		std::size_t selected_memory() const noexcept;
+		void selected_memory(std::size_t new_selected_memory) noexcept;
 
 	private:
-		std::size_t x_ = 0, y_ = 0;
+		int x_ = 0, y_ = -1;
 		int dx_ = 0, dy_ = 1;
+		aheui::extension* extension_ = nullptr;
+		std::size_t selected_memory_ = 0;
 	};
 
 	class interpreter final : public talkheui::interpreter
@@ -56,14 +68,22 @@ namespace talkheui::aheui
 		virtual void run_script_step() override;
 
 	protected:
+		virtual void reset_priv() override;
+		
 		virtual void load_script_priv(const std::string_view& script) override;
+
+	private:
+		void move_cursor();
+		void reverse_cursor();
+		void update_cursor(runtime_state* state, char32_t jungsung);
 
 	public:
 		const codeplane& script() const noexcept;
 		long long result() const noexcept;
+		bool has_result() const noexcept;
 
 	private:
 		codeplane script_;
-		long long result_;
+		std::optional<long long> result_;
 	};
 }

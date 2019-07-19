@@ -64,6 +64,8 @@ namespace talkheui
 		void unload_extension(const std::string& path);
 
 	protected:
+		virtual void reset_priv() = 0;
+
 		virtual void load_script_priv(const std::string_view& script) = 0;
 
 	public:

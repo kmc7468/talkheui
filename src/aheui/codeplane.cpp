@@ -42,21 +42,16 @@ namespace talkheui::aheui
 			pos = line + 1;
 
 			if (!line_str.empty() && line_str.back() == U'\r') line_str.erase(line_str.end() - 1);
-
-			const giter end = giter(line_str.begin(), line_str.end(), line_str.end());
-			std::vector<u5e::basic_grapheme<std::u32string>>& line_graphemes = graphemes_.emplace_back();
-
-			for (giter iter(line_str.begin(), line_str.end()); iter != end; ++iter)
-			{
-				line_graphemes.push_back(*iter);
-			}
 		}
 
 		if (pos < code.size())
 		{
 			std::u32string& line_str = lines_.emplace_back(code.substr(pos));
 			pos = line + 1;
+		}
 
+		for (std::u32string& line_str : lines_)
+		{
 			const giter end = giter(line_str.begin(), line_str.end(), line_str.end());
 			std::vector<u5e::basic_grapheme<std::u32string>>& line_graphemes = graphemes_.emplace_back();
 
@@ -70,5 +65,14 @@ namespace talkheui::aheui
 	u5e::basic_grapheme<std::u32string> codeplane::at(int x, int y) const noexcept
 	{
 		return graphemes_[static_cast<std::size_t>(y)][static_cast<std::size_t>(x)];
+	}
+	const std::vector<u5e::basic_grapheme<std::u32string>>& codeplane::at(int y) const noexcept
+	{
+		return graphemes_[static_cast<std::size_t>(y)];
+	}
+
+	std::size_t codeplane::max_lines() const noexcept
+	{
+		return lines_.size();
 	}
 }

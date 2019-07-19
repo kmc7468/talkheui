@@ -23,6 +23,9 @@ namespace talkheui::aheui
 		void parse(const std::u32string& code);
 
 		u5e::basic_grapheme<std::u32string> at(int x, int y) const noexcept;
+		const std::vector<u5e::basic_grapheme<std::u32string>>& at(int y) const noexcept;
+
+		std::size_t max_lines() const noexcept;
 
 	private:
 		std::vector<std::u32string> lines_;

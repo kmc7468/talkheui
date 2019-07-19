@@ -57,6 +57,7 @@ namespace talkheui
 	{
 		reset_state();
 		unload_script();
+		reset_priv();
 	}
 	void interpreter::reset_state()
 	{
