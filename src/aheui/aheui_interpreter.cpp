@@ -256,15 +256,33 @@ namespace talkheui::aheui
 				break;
 			}
 			
-			const long long v = storage->pop();
+			long long v = storage->pop();
 			if (command_jaso.jongsung == U'ㅇ')
 			{
 				std::printf("%lld", v);
 			}
 			else if (command_jaso.jongsung == U'ㅎ')
 			{
+#if defined(_WIN32) || defined(_WIN64)
+				DWORD written;
+
+				if (v < 0x10000)
+				{
+					wchar_t vwc = static_cast<wchar_t>(v);
+					WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), &vwc, 1, &written, nullptr);
+				}
+				else
+				{
+					wchar_t units[2];
+					v -= 0x10000;
+					units[0] = v / 0x400 + 0xD800;
+					units[1] = v % 0x400 + 0xDC00;
+					WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), units, 2, &written, nullptr);
+				}
+#else
 				const std::string v_str = utf32to8(std::u32string_view(reinterpret_cast<const char32_t*>(&v), 1));
 				std::printf("%s", reinterpret_cast<const char*>(v_str.c_str()));
+#endif
 			}
 			break;
 		}
