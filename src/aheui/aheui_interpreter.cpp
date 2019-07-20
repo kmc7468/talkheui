@@ -12,6 +12,10 @@
 #include <utility>
 #include <u5e/basic_grapheme.hpp>
 
+#if defined(_WIN32) || defined(_WIN64)
+#	include <Windows.h>
+#endif
+
 namespace talkheui::aheui
 {
 	runtime_state::runtime_state()
@@ -259,16 +263,8 @@ namespace talkheui::aheui
 			}
 			else if (command_jaso.jongsung == U'ㅎ')
 			{
-				if constexpr (sizeof(wchar_t) == 2)
-				{
-					const std::u16string v_str = utf32to16(std::u32string_view(reinterpret_cast<const char32_t*>(&v), 1));
-					std::printf("%ws", reinterpret_cast<const wchar_t*>(v_str.c_str()));
-				}
-				else
-				{
-					const std::string v_str = utf32to8(std::u32string_view(reinterpret_cast<const char32_t*>(&v), 1));
-					std::printf("%s", reinterpret_cast<const char*>(v_str.c_str()));
-				}
+				const std::string v_str = utf32to8(std::u32string_view(reinterpret_cast<const char32_t*>(&v), 1));
+				std::printf("%s", reinterpret_cast<const char*>(v_str.c_str()));
 			}
 			break;
 		}
@@ -281,48 +277,47 @@ namespace talkheui::aheui
 			}
 			else if (command_jaso.jongsung == U'ㅎ')
 			{
-				if constexpr (sizeof(wchar_t) == 2)
+#if defined(_WIN32) || defined(_WIN64)
+				wchar_t units[2];
+				DWORD read;
+
+				ReadConsoleW(GetStdHandle(STD_INPUT_HANDLE), units, 1, &read, nullptr);
+
+				if ((units[0] & 0xD800) == 0xD800)
 				{
-					wchar_t fc;
-					std::scanf("%wc", &fc);
-					if ((fc & 0xD800) == 0)
-					{
-						v = fc;
-					}
-					else
-					{
-						wchar_t sc;
-						std::scanf("%wc", &sc);
-						v = (fc - 0xD800) * 0x400 + (sc - 0xDC00);
-					}
+					ReadConsoleW(GetStdHandle(STD_INPUT_HANDLE), units + 1, 1, &read, nullptr);
+					v = (units[0] - 0xD800) * 0x400 + (units[1] - 0xDC00);
 				}
 				else
 				{
-					unsigned char fb;
-					std::scanf("%c", reinterpret_cast<char*>(&fb));
-					if (fb < 0x80)
-					{
-						v = fb;
-					}
-					else if ((fb & 0xF0) == 0xF0)
-					{
-						unsigned char sb, tb, frb;
-						std::scanf("%c%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb), reinterpret_cast<char*>(&frb));
-						v = ((fb & 0x07) << 18) + ((sb & 0x3F) << 12) + ((tb & 0x3F) << 6) + (frb & 0x3F);
-					}
-					else if ((fb & 0xE0) == 0xE0)
-					{
-						unsigned char sb, tb;
-						std::scanf("%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb));
-						v = ((fb & 0x0F) << 12) + ((sb & 0x3F) << 6) + (tb & 0x3F);
-					}
-					else
-					{
-						unsigned char sb;
-						std::scanf("%c", reinterpret_cast<char*>(&sb));
-						v = ((fb & 0x1F) << 6) + (sb & 0x3F);
-					}
+					v = units[0];
 				}
+#else
+				unsigned char fb;
+				std::scanf("%c", reinterpret_cast<char*>(&fb));
+				if (fb < 0x80)
+				{
+					v = fb;
+				}
+				else if ((fb & 0xF0) == 0xF0)
+				{
+					unsigned char sb, tb, frb;
+					std::scanf("%c%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb), reinterpret_cast<char*>(&frb));
+					v = ((fb & 0x07) << 18) + ((sb & 0x3F) << 12) + ((tb & 0x3F) << 6) + (frb & 0x3F);
+				}
+				else if ((fb & 0xE0) == 0xE0)
+				{
+					unsigned char sb, tb;
+					std::scanf("%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb));
+					v = ((fb & 0x0F) << 12) + ((sb & 0x3F) << 6) + (tb & 0x3F);
+				}
+				else
+				{
+					unsigned char sb;
+					std::scanf("%c", reinterpret_cast<char*>(&sb));
+					v = ((fb & 0x1F) << 6) + (sb & 0x3F);
+				}
+#endif
 			}
 			else
 			{
