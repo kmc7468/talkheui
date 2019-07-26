@@ -849,4 +849,3 @@ static int mime_global_dot(lua_State *L)
     lua_pushnumber(L, (lua_Number) state);
     return 2;
 }
-

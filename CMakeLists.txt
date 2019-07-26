@@ -10,5 +10,9 @@ include_directories("./include" "./extlib")
 file(GLOB_RECURSE SOURCE_LIST "./src/*.cpp" "./extlib/*.c" "./extlib/*.cpp")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 
+if(WIN32)
+    link_libraries(ws2_32)
+endif()
+
 add_executable(${PROJECT_NAME} ${SOURCE_LIST})
 install(TARGETS ${PROJECT_NAME} DESTINATION "bin")

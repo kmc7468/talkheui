@@ -12,6 +12,7 @@
 #include "socket.h"
 #include "pierror.h"
 
+#if defined(_WIN32) || defined(_WIN64)
 /* WinSock doesn't have a strerror... */
 static const char *wstrerror(int err);
 
@@ -432,3 +433,4 @@ const char *socket_gaistrerror(int err) {
         default: return gai_strerror(err);
     }
 }
+#endif
