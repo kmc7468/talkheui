@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories("./include" "./extlib")
 file(GLOB_RECURSE SOURCE_LIST "./src/*.cpp" "./extlib/*.c" "./extlib/*.cpp")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
 if(WIN32)
     link_libraries(ws2_32)
