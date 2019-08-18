@@ -126,7 +126,7 @@ namespace talkheui
 
 		return read_as_utf8(file);
 	}
-	std::string talkheui::read_as_utf8(std::istream& stream)
+	std::string read_as_utf8(std::istream& stream)
 	{
 		const encoding enc = detect_encoding(stream);
 
