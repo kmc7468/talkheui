@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 		}
 		catch (...)
 		{
-			std::cout << "Failed to open the extension '" << argv[1] << "'\n";
+			std::cout << "Failed to open the extension '" << argv[2] << "'\n";
 			return 0;
 		}
 	}
