@@ -1,15 +1,63 @@
-#include <talkheui/aheui/extension.hpp>
+#include <talkheui/aheui/interpreter.hpp>
 #include <talkheui/encoding.hpp>
 
-int main()
+#include <iostream>
+#include <string>
+
+#ifdef _WIN32
+#	include <fcntl.h>
+#	include <io.h>
+#	include <Windows.h>
+#endif
+
+int main(int argc, char** argv)
 {
-	/*talkheui::extension* ext = talkheui::open_extension("C:/Users/KMC/Desktop/새 폴더 (2).zip");
-	auto* ext_la = static_cast<talkheui::aheui::lua_extension*>(ext);
+	if (argc == 1)
+	{
+		std::cout << "Usage: talkheui <Aheui code path> [Extension path]\n";
+		return 0;
+	}
+	else if (argc > 3)
+	{
+		std::cout << "There are too many arguments\n";
+		return 0;
+	}
 
-	long long v = ext_la->receive();
-	ext_la->send(10);*/
+#ifdef _WIN32
+	std::setlocale(LC_ALL, "");
+	SetConsoleOutputCP(CP_UTF8);
+	SetConsoleCP(CP_UTF8);
+#endif
 
-	std::string str = talkheui::read_as_utf8("C:/Users/KMC/Desktop/test.txt");
+	talkheui::aheui::interpreter i;
+	std::string sc;
+
+	try
+	{
+		sc = talkheui::read_as_utf8(argv[1]);
+	}
+	catch (...)
+	{
+		std::cout << "Failed to open the aheui code '" << argv[1] << "'\n";
+		return 0;
+	}
+
+	if (argc == 3)
+	{
+		std::string ex = argv[2];
+		try
+		{
+			i.load_extension(ex);
+			i.construct_pipe(ex);
+		}
+		catch (...)
+		{
+			std::cout << "Failed to open the extension '" << argv[1] << "'\n";
+			return 0;
+		}
+	}
+
+	i.run(sc);
 
 	return 0;
 }
