@@ -15,8 +15,13 @@
 
 ## 사용 방법
 ```
-talkheui <아희 코드 경로> [확장 경로]
+$ ./talkheui <아희 코드 경로> [확장 경로]
 ```
+
+## 예제
+- [소켓 통신](https://github.com/kmc7468/talkheui/wiki/%EC%95%84%ED%9D%AC-%EC%98%88%EC%A0%9C-%EC%86%8C%EC%BC%93-%ED%86%B5%EC%8B%A0)
+
+더 많은 예제는 [이곳](https://github.com/kmc7468/talkheui/wiki)에서 확인하실 수 있습니다.
 
 ## 컴파일
 ```
