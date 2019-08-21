@@ -31,7 +31,8 @@ namespace th::aheui {
 		m_Memories.insert(m_Memories.begin() + 21, new Queue());
 	}
 	void RuntimeState::ResetStep() {
-		X = Y = 0;
+		X = 0;
+		Y = -1;
 		DX = 0;
 		DY = 1;
 	}

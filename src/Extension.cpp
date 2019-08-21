@@ -5,6 +5,7 @@
 #include <th/Extension.hpp>
 #include <th/Aheui/Extension.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <string_view>
@@ -13,7 +14,7 @@
 namespace th {
 	template<>
 	ExtensionTarget ToEnum<ExtensionTarget>(std::string string) noexcept {
-		std::transform(string.begin(), string.end(), string.begin(), std::tolower);
+		std::transform(string.begin(), string.end(), string.begin(), [](char c){ return std::tolower(c); });
 		if (string == "aheui") {
 			return ExtensionTarget::Aheui;
 		} else return ExtensionTarget::None;

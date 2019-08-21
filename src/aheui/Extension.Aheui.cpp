@@ -34,7 +34,7 @@ namespace th::aheui {
 		if (type->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Type\" as string");
 
 		std::string typeStr = *type;
-		std::transform(typeStr.begin(), typeStr.end(), typeStr.begin(), std::tolower);
+		std::transform(typeStr.begin(), typeStr.end(), typeStr.begin(), [](char c){ return std::tolower(c); });
 
 		if (typeStr == "lua") {
 			m_Type = ExtensionType::Lua;
@@ -129,7 +129,7 @@ namespace th::aheui {
 		if (type->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Type\" as string");
 
 		std::string typeStr = *type;
-		std::transform(typeStr.begin(), typeStr.end(), typeStr.begin(), std::tolower);
+		std::transform(typeStr.begin(), typeStr.end(), typeStr.begin(), [](char c){ return std::tolower(c); });
 
 		if (typeStr == "lua") return new LuaExtension(path);
 		else throw std::runtime_error("unsupported type");
