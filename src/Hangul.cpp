@@ -19,7 +19,7 @@ namespace th {
 		hangul -= 0xAC00;
 		const char32_t jongsungIndex = hangul % 28;
 		const char32_t jungsungIndex = (hangul - jongsungIndex) / 28 % 21;
-		const char32_t chosungIndex = (((hangul - jongsungIndex) / 28) - chosungIndex) / 21;
+		const char32_t chosungIndex = (((hangul - jongsungIndex) / 28) - jungsungIndex) / 21;
 
 		return { Chosungs[chosungIndex], Jungsungs[jungsungIndex], Jongsungs[jongsungIndex] };
 	}

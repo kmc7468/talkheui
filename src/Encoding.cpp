@@ -144,7 +144,7 @@ namespace th {
 			stream.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(length));
 
 			if (static_cast<int>(endian) != static_cast<int>(encoding) - static_cast<int>(Encoding::UTF32)) {
-				std::transform(result.begin(), result.end(), result.begin(), [](char16_t c) {
+				std::transform(result.begin(), result.end(), result.begin(), [](char32_t c) {
 					return static_cast<char32_t>(((c & 0xFF000000) >> 24) | ((c & 0xFF0000) >> 8) | ((c & 0xFF00) << 8) | ((c & 0xFF) << 24));
 				});
 			}

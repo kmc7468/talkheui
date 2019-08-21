@@ -206,8 +206,8 @@ namespace th::aheui {
 				} else {
 					wchar_t units[2];
 					v -= 0x10000;
-					units[0] = v / 0x400 + 0xD800;
-					units[1] = v % 0x400 + 0xDC00;
+					units[0] = static_cast<wchar_t>(v / 0x400 + 0xD800);
+					units[1] = static_cast<wchar_t>(v % 0x400 + 0xDC00);
 					WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), units, 2, &written, nullptr);
 				}
 #else

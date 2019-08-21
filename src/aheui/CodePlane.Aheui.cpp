@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#	pragma warning(disable: 4456)
+#endif
+
 #include <th/aheui/CodePlane.hpp>
 
 #include <utility>

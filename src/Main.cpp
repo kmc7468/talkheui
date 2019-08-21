@@ -49,5 +49,5 @@ int main(int argc, char* argv[]) {
 	}
 
 	i.Run(sc);
-	return i.Result();
+	return static_cast<int>(i.Result());
 }
