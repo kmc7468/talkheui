@@ -1,102 +1,97 @@
 #pragma once
 
-#include <talkheui/memory.hpp>
+#include <th/Memory.hpp>
 
 #include <deque>
 
-namespace talkheui::aheui
-{
-	class storage : public memory
-	{
+namespace th::aheui {
+	class Storage : public Memory {
 	public:
-		virtual ~storage() override = default;
+		virtual ~Storage() override = default;
 
 	protected:
-		storage(std::string name) noexcept;
-		storage(const storage& storage);
-		storage(storage&& storage) noexcept;
+		Storage(std::string name) noexcept;
+		Storage(const Storage& storage);
+		Storage(Storage&& storage) noexcept;
 
 	protected:
-		storage& operator=(const storage& storage);
-		storage& operator=(storage&& storage) noexcept;
+		Storage& operator=(const Storage& storage);
+		Storage& operator=(Storage&& storage) noexcept;
 
 	public:
-		virtual void push(long long value) = 0;
-		virtual long long pop() = 0;
-		virtual void copy() = 0;
-		virtual void swap() noexcept = 0;
+		virtual void Push(long long value) = 0;
+		virtual long long Pop() = 0;
+		virtual void Copy() = 0;
+		virtual void Swap() noexcept = 0;
 	};
 
-	class stack final : public storage
-	{
-	public:
-		stack();
-		stack(const stack& stack);
-		stack(stack&& stack) noexcept;
-		virtual ~stack() override = default;
-
-	public:
-		stack& operator=(const stack& stack);
-		stack& operator=(stack&& stack) noexcept;
-
-	public:
-		virtual std::size_t bytes() const noexcept override;
-		virtual std::size_t size() const noexcept override;
-		virtual void push(long long value) override;
-		virtual long long pop() override;
-		virtual void copy() override;
-		virtual void swap() noexcept override;
-
+	class Stack final : public Storage {
 	private:
-		std::deque<long long> data_;
+		std::deque<long long> m_Data;
+
+	public:
+		Stack();
+		Stack(const Stack& stack);
+		Stack(Stack&& stack) noexcept;
+		virtual ~Stack() override = default;
+
+	public:
+		Stack& operator=(const Stack& stack);
+		Stack& operator=(Stack&& stack) noexcept;
+
+	public:
+		virtual std::size_t Count() const noexcept override;
+		virtual std::size_t Bytes() const noexcept override;
+		virtual void Push(long long value) override;
+		virtual long long Pop() override;
+		virtual void Copy() override;
+		virtual void Swap() noexcept override;
 	};
 
-	class queue final : public storage
-	{
-	public:
-		queue();
-		queue(const queue& queue);
-		queue(queue&& queue) noexcept;
-		virtual ~queue() override = default;
-
-	public:
-		queue& operator=(const queue& queue);
-		queue& operator=(queue&& queue) noexcept;
-
-	public:
-		virtual std::size_t bytes() const noexcept override;
-		virtual std::size_t size() const noexcept override;
-		virtual void push(long long value) override;
-		virtual long long pop() override;
-		virtual void copy() override;
-		virtual void swap() noexcept override;
-
+	class Queue final : public Storage {
 	private:
-		std::deque<long long> data_;
+		std::deque<long long> m_Data;
+
+	public:
+		Queue();
+		Queue(const Queue& queue);
+		Queue(Queue&& queue) noexcept;
+		virtual ~Queue() override = default;
+
+	public:
+		Queue& operator=(const Queue& queue);
+		Queue& operator=(Queue&& queue) noexcept;
+
+	public:
+		virtual std::size_t Count() const noexcept override;
+		virtual std::size_t Bytes() const noexcept override;
+		virtual void Push(long long value) override;
+		virtual long long Pop() override;
+		virtual void Copy() override;
+		virtual void Swap() noexcept override;
 	};
 
-	class extension;
+	class Extension;
 
-	class pipe final : public storage
-	{
-	public:
-		pipe(extension* extension);
-		pipe(pipe&& pipe) noexcept;
-		virtual ~pipe() override = default;
-
-	public:
-		pipe& operator=(pipe&& pipe) noexcept;
-
-	public:
-		virtual std::size_t bytes() const noexcept override;
-		virtual std::size_t size() const noexcept override;
-		virtual void push(long long value) override;
-		virtual long long pop() override;
-		virtual void copy() override;
-		virtual void swap() noexcept override;
-
+	class Pipe final : public Storage {
 	private:
-		extension* extension_;
-		long long recent_pushed_ = 0;
+		Extension* m_Extension = nullptr;
+		long long m_RecentPushed = 0;
+
+	public:
+		Pipe(Extension* extension);
+		Pipe(Pipe&& pipe) noexcept;
+		virtual ~Pipe() override = default;
+
+	public:
+		Pipe& operator=(Pipe&& pipe) noexcept;
+
+	public:
+		virtual std::size_t Count() const noexcept override;
+		virtual std::size_t Bytes() const noexcept override;
+		virtual void Push(long long value) override;
+		virtual long long Pop() override;
+		virtual void Copy() override;
+		virtual void Swap() noexcept override;
 	};
 }

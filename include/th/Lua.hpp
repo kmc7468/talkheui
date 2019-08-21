@@ -20,7 +20,7 @@ namespace th {
 	public:
 		void LoadScript(const std::string_view& script);
 		
-		void GetGlobal(const std::string& name);
+		bool GetGlobal(const std::string& name);
 		void Push(long long number);
 		long long PopInteger();
 		void Call(int paramSize, int retSize);

@@ -1,180 +1,154 @@
-#include <talkheui/aheui/storage.hpp>
+#include <th/aheui/Storage.hpp>
 
-#include <talkheui/aheui/extension.hpp>
+#include <th/aheui/Extension.hpp>
 
-#include <limits>
 #include <utility>
 
-namespace talkheui::aheui
-{
-	storage::storage(std::string name) noexcept
-		: memory(std::move(name))
-	{}
-	storage::storage(const storage& storage)
-		: memory(storage)
-	{}
-	storage::storage(storage&& storage) noexcept
-		: memory(std::move(storage))
-	{}
-
-	storage& storage::operator=(const storage& storage)
-	{
-		return memory::operator=(storage), *this;
+namespace th::aheui {
+	Storage::Storage(std::string name) noexcept
+		: Memory(std::move(name)) {
 	}
-	storage& storage::operator=(storage&& storage) noexcept
-	{
-		return memory::operator=(std::move(storage)), *this;
+	Storage::Storage(const Storage& storage)
+		: Memory(storage) {
+	}
+	Storage::Storage(Storage&& storage) noexcept
+		: Memory(std::move(storage)) {
+	}
+
+	Storage& Storage::operator=(const Storage& storage) {
+		return Memory::operator=(storage), *this;
+	}
+	Storage& Storage::operator=(Storage&& storage) noexcept {
+		return Memory::operator=(std::move(storage)), *this;
 	}
 }
 
-namespace talkheui::aheui
-{
-	stack::stack()
-		: storage("Stack")
-	{}
-	stack::stack(const stack& stack)
-		: storage(stack), data_(stack.data_)
-	{}
-	stack::stack(stack&& stack) noexcept
-		: storage(std::move(stack)), data_(std::move(stack.data_))
-	{}
-
-	stack& stack::operator=(const stack& stack)
-	{
-		storage::operator=(stack);
-		data_ = stack.data_;
-		return *this;
+namespace th::aheui {
+	Stack::Stack()
+		: Storage("Stack") {
 	}
-	stack& stack::operator=(stack&& stack) noexcept
-	{
-		storage::operator=(std::move(stack));
-		data_ = std::move(stack.data_);
-		return *this;
+	Stack::Stack(const Stack& stack)
+		: Storage(stack), m_Data(stack.m_Data) {
+	}
+	Stack::Stack(Stack&& stack) noexcept
+		: Storage(std::move(stack)), m_Data(std::move(stack.m_Data)) {
 	}
 
-	std::size_t stack::bytes() const noexcept
-	{
-		return data_.size() * sizeof(long long);
+	Stack& Stack::operator=(const Stack& stack) {
+		Storage::operator=(stack);
+
+		m_Data = stack.m_Data;
+		return *this;
 	}
-	std::size_t stack::size() const noexcept
-	{
-		return data_.size();
+	Stack& Stack::operator=(Stack&& stack) noexcept {
+		Storage::operator=(std::move(stack));
+
+		m_Data = std::move(stack.m_Data);
+		return *this;
 	}
-	void stack::push(long long value)
-	{
-		data_.push_back(value);
+
+	std::size_t Stack::Count() const noexcept {
+		return m_Data.size();
 	}
-	long long stack::pop()
-	{
-		const long long result = data_.back();
-		return data_.pop_back(), result;
+	std::size_t Stack::Bytes() const noexcept {
+		return Count() * sizeof(long long);
 	}
-	void stack::copy()
-	{
-		data_.push_back(data_.back());
+	void Stack::Push(long long value) {
+		m_Data.push_back(value);
 	}
-	void stack::swap() noexcept
-	{
-		std::iter_swap(data_.end() - 1, data_.end() - 2);
+	long long Stack::Pop() {
+		const long long result = m_Data.back();
+		return m_Data.pop_back(), result;
+	}
+	void Stack::Copy() {
+		m_Data.push_back(m_Data.back());
+	}
+	void Stack::Swap() noexcept {
+		std::iter_swap(m_Data.end() - 1, m_Data.end() - 2);
 	}
 }
 
-namespace talkheui::aheui
-{
-	queue::queue()
-		: storage("Queue")
-	{}
-	queue::queue(const queue& queue)
-		: storage(queue), data_(queue.data_)
-	{}
-	queue::queue(queue&& queue) noexcept
-		: storage(std::move(queue)), data_(std::move(queue.data_))
-	{}
-
-	queue& queue::operator=(const queue& queue)
-	{
-		storage::operator=(queue);
-		data_ = queue.data_;
-		return *this;
+namespace th::aheui {
+	Queue::Queue()
+		: Storage("Queue") {
 	}
-	queue& queue::operator=(queue&& queue) noexcept
-	{
-		storage::operator=(std::move(queue));
-		data_ = std::move(queue.data_);
-		return *this;
+	Queue::Queue(const Queue& queue)
+		: Storage(queue), m_Data(queue.m_Data) {
+	}
+	Queue::Queue(Queue&& queue) noexcept
+		: Storage(std::move(queue)), m_Data(std::move(queue.m_Data)) {
 	}
 
-	std::size_t queue::bytes() const noexcept
-	{
-		return data_.size() * sizeof(long long);
+	Queue& Queue::operator=(const Queue& queue) {
+		Storage::operator=(queue);
+
+		m_Data = queue.m_Data;
+		return *this;
 	}
-	std::size_t queue::size() const noexcept
-	{
-		return data_.size();
+	Queue& Queue::operator=(Queue&& queue) noexcept {
+		Storage::operator=(std::move(queue));
+
+		m_Data = std::move(queue.m_Data);
+		return *this;
 	}
-	void queue::push(long long value)
-	{
-		data_.push_back(value);
+
+	std::size_t Queue::Count() const noexcept {
+		return m_Data.size();
 	}
-	long long queue::pop()
-	{
-		const long long result = data_.front();
-		return data_.pop_front(), result;
+	std::size_t Queue::Bytes() const noexcept {
+		return Count() * sizeof(long long);
 	}
-	void queue::copy()
-	{
-		data_.push_front(data_.front());
+	void Queue::Push(long long value) {
+		m_Data.push_back(value);
 	}
-	void queue::swap() noexcept
-	{
-		std::iter_swap(data_.begin(), data_.begin() + 1);
+	long long Queue::Pop() {
+		const long long result = m_Data.front();
+		return m_Data.pop_front(), result;
+	}
+	void Queue::Copy() {
+		m_Data.push_front(m_Data.front());
+	}
+	void Queue::Swap() noexcept {
+		std::iter_swap(m_Data.begin(), m_Data.begin() + 1);
 	}
 }
 
-namespace talkheui::aheui
-{
-	pipe::pipe(extension* extension)
-		: storage("Pipe"), extension_(extension)
+namespace th::aheui {
+	Pipe::Pipe(Extension* extension)
+		: Storage("Pipe"), m_Extension(extension)
 	{}
-	pipe::pipe(pipe&& pipe) noexcept
-		: storage(std::move(pipe)), extension_(pipe.extension_), recent_pushed_(pipe.recent_pushed_)
-	{
-		pipe.extension_ = nullptr;
+	Pipe::Pipe(Pipe&& pipe) noexcept
+		: Storage(std::move(pipe)), m_Extension(pipe.m_Extension), m_RecentPushed(pipe.m_RecentPushed) {
+		pipe.m_Extension = nullptr;
 	}
 
-	pipe& pipe::operator=(pipe&& pipe) noexcept
-	{
-		storage::operator=(std::move(pipe));
-		extension_ = pipe.extension_;
-		recent_pushed_ = pipe.recent_pushed_;
+	Pipe& Pipe::operator=(Pipe&& pipe) noexcept {
+		Storage::operator=(std::move(pipe));
+		m_Extension = pipe.m_Extension;
+		m_RecentPushed = pipe.m_RecentPushed;
 
-		pipe.extension_ = nullptr;
-		pipe.recent_pushed_ = 0;
+		pipe.m_Extension = nullptr;
+		pipe.m_RecentPushed = 0;
 
 		return *this;
 	}
 
-	std::size_t pipe::bytes() const noexcept
-	{
-		return static_cast<std::size_t>(extension_->bytes());
+	std::size_t Pipe::Count() const noexcept {
+		return static_cast<std::size_t>(m_Extension->Count());
 	}
-	std::size_t pipe::size() const noexcept
-	{
-		return static_cast<std::size_t>(extension_->size());
+	std::size_t Pipe::Bytes() const noexcept {
+		return static_cast<std::size_t>(m_Extension->Bytes());
 	}
-	void pipe::push(long long value)
-	{
-		extension_->send(value);
-		recent_pushed_ = value;
+	void Pipe::Push(long long value) {
+		m_Extension->Send(value);
+		m_RecentPushed = value;
 	}
-	long long pipe::pop()
-	{
-		return extension_->receive();
+	long long Pipe::Pop() {
+		return m_Extension->Receive();
 	}
-	void pipe::copy()
-	{
-		push(recent_pushed_);
+	void Pipe::Copy() {
+		Push(m_RecentPushed);
 	}
-	void pipe::swap() noexcept
-	{}
+	void Pipe::Swap() noexcept {
+	}
 }

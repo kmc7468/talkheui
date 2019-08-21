@@ -17,7 +17,7 @@ namespace {
 		UTF32,
 		UTF32BE,
 	};
-	Encoding DetectEncoding(std::ifstream& stream) {
+	Encoding DetectEncoding(std::istream& stream) {
 		static constexpr std::uint8_t UTF8Bom[] = { 0xEF, 0xBB, 0xBF };
 		static constexpr std::uint8_t UTF16Bom[] = { 0xFF, 0xFE };
 		static constexpr std::uint8_t UTF16BEBom[] = { 0xFE, 0xFF };

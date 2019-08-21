@@ -1,94 +1,82 @@
 #pragma once
 
-#include <talkheui/interpreter.hpp>
-#include <talkheui/aheui/codeplane.hpp>
+#include <th/interpreter.hpp>
+#include <th/aheui/CodePlane.hpp>
 
 #include <cstddef>
 #include <optional>
 #include <string>
 #include <string_view>
 
-namespace talkheui::aheui
-{
-	class extension;
-	class interpreter;
+namespace th::aheui {
+	class Extension;
+	class Interpreter;
 
-	class runtime_state final : public talkheui::runtime_state
+	class RuntimeState final : public th::RuntimeState
 	{
-		friend class aheui::interpreter;
+		friend class aheui::Interpreter;
 
 	public:
-		virtual ~runtime_state() override = default;
+		int X = 0, Y = -1;
+		int DX = 0, DY = 1;
+		std::size_t SelectedStorage = 0;
 
 	private:
-		runtime_state();
+		aheui::Extension* m_Extension = nullptr;
+
+	public:
+		virtual ~RuntimeState() override = default;
+
+	private:
+		RuntimeState();
 		
 	public:
-		runtime_state& operator=(const runtime_state&) = delete;
+		RuntimeState& operator=(const RuntimeState&) = delete;
 
 	public:
-		virtual void reset() override;
-		virtual void reset_step() override;
+		virtual void Reset() override;
+		virtual void ResetStep() override;
 
 	public:
-		int x() const noexcept;
-		void x(int new_x) noexcept;
-		int y() const noexcept;
-		void y(int new_y) noexcept;
-		int dx() const noexcept;
-		void dx(int new_dx) noexcept;
-		int dy() const noexcept;
-		void dy(int new_dy) noexcept;
-		aheui::extension* extension() const noexcept;
-		void extension(aheui::extension* new_extension);
-		std::size_t selected_memory() const noexcept;
-		void selected_memory(std::size_t new_selected_memory) noexcept;
-
-	private:
-		int x_ = 0, y_ = -1;
-		int dx_ = 0, dy_ = 1;
-		aheui::extension* extension_ = nullptr;
-		std::size_t selected_memory_ = 0;
+		aheui::Extension* GetConstructedExtension() const noexcept;
+		void ConstructPipe(aheui::Extension* extension);
 	};
 
-	class interpreter final : public talkheui::interpreter
-	{
-	public:
-		interpreter() noexcept;
-		interpreter(interpreter&& interpreter) noexcept;
-		virtual ~interpreter() override = default;
+	class Interpreter final : public th::Interpreter {
+	private:
+		CodePlane m_Script;
+		std::optional<long long> m_Result;
 
 	public:
-		interpreter& operator=(interpreter&& interpreter) noexcept;
+		Interpreter();
+		Interpreter(Interpreter&& interpreter) noexcept;
+		virtual ~Interpreter() override = default;
 
 	public:
-		virtual void unload_script() override;
-
-		virtual bool is_loaded_script() const override;
-		virtual void run_script() override;
-		virtual void run_script_step() override;
+		Interpreter& operator=(Interpreter&& interpreter) noexcept;
 
 	public:
-		void construct_pipe(const std::string& path);
-		void deconstruct_pipe();
+		virtual bool IsScriptLoaded() const override;
+		virtual void UnloadScript() override;
+		virtual void RunScript() override;
+		virtual void RunScriptStep() override;
+
+		void ConstructPipe(const std::string& path);
+		void DeconstructPipe();
 
 	protected:
-		virtual void reset_priv() override;
-		
-		virtual void load_script_priv(const std::string_view& script) override;
+		virtual void vReset() override;
+
+		virtual void vLoadScript(const std::string_view& script) override;
 
 	private:
-		void move_cursor();
-		void reverse_cursor();
-		void update_cursor(runtime_state* state, char32_t jungsung);
+		void MoveCursor();
+		void ReverseCursor();
+		void UpdateCursor(char32_t jungsung);
 
 	public:
-		const codeplane& script() const noexcept;
-		long long result() const noexcept;
-		bool has_result() const noexcept;
-
-	private:
-		codeplane script_;
-		std::optional<long long> result_;
+		const CodePlane& Script() const noexcept;
+		long long Result() const noexcept;
+		bool HasResult() const noexcept;
 	};
 }

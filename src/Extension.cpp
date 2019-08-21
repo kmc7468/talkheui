@@ -11,6 +11,16 @@
 #include <utility>
 
 namespace th {
+	template<>
+	ExtensionTarget ToEnum<ExtensionTarget>(std::string string) noexcept {
+		std::transform(string.begin(), string.end(), string.begin(), std::tolower);
+		if (string == "aheui") {
+			return ExtensionTarget::Aheui;
+		} else return ExtensionTarget::None;
+	}
+}
+
+namespace th {
 	ExtensionResources::ExtensionResources(ExtensionResources&& resources) noexcept
 		: m_Resources(std::move(resources.m_Resources)) {
 	}
@@ -40,7 +50,7 @@ namespace {
 }
 
 namespace th {
-	Extension::Extension(ExtensionInfo info)
+	Extension::Extension(ExtensionInfo info) noexcept
 		: m_Info(std::move(info)) {
 	}
 	Extension::Extension(Extension&& extension) noexcept
@@ -57,7 +67,7 @@ namespace th {
 	void Extension::Open(const std::string& path) {
 		Close();
 
-		const ZipReader zip(path);
+		ZipReader zip(path);
 
 		// Extension.json
 		const ZipReaderEntry info = zip.Find("Extension.json");
@@ -96,7 +106,7 @@ namespace th {
 			const ZipReaderEntry entry = zip[i];
 			if (entry.IsDirectory()) continue;
 
-			const std::string entryName = entry.FileName();
+			const std::string entryName = entry.Filename();
 			if (std::string_view(entryName.data(), 4) != "res/") continue;
 
 			resources.Add(entryName.substr(4), entry);
@@ -154,7 +164,7 @@ namespace th {
 
 		switch (targetEnum) {
 		case ExtensionTarget::Aheui:
-			return Aheui::OpenExtension(path);
+			return aheui::OpenExtension(path);
 		
 		default:
 			return nullptr;

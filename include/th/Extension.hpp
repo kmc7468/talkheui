@@ -22,12 +22,7 @@ namespace th {
 	};
 
 	template<>
-	ExtensionTarget ToEnum<ExtensionTarget>(std::string string) noexcept {
-		std::transform(string.begin(), string.end(), string.begin(), std::tolower);
-		if (string == "aheui") {
-			return ExtensionTarget::Aheui;
-		} else ExtensionTarget::None;
-	}
+	ExtensionTarget ToEnum<ExtensionTarget>(std::string string) noexcept;
 
 	struct ExtensionInfo final {
 		std::string Name;

@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 	SetConsoleCP(CP_UTF8);
 #endif
 
-	th::aheui::interpreter i;
+	th::aheui::Interpreter i;
 	std::string sc;
 
 	try {
@@ -49,9 +49,5 @@ int main(int argc, char* argv[]) {
 	}
 
 	i.Run(sc);
-	if (i.HasResult()) {
-		return i.Result();
-	} else {
-		return 0;
-	}
+	return i.Result();
 }

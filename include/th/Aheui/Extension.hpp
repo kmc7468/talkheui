@@ -1,99 +1,68 @@
 #pragma once
 
-#include <talkheui/aheui/codeplane.hpp>
-#include <talkheui/aheui/interpreter.hpp>
-#include <talkheui/extension.hpp>
-#include <talkheui/lua.hpp>
-#include <talkheui/zip.hpp>
+#include <th/Extension.hpp>
+#include <th/Lua.hpp>
+#include <th/Zip.hpp>
+#include <th/aheui/CodePlane.hpp>
+#include <th/aheui/Interpreter.hpp>
 
 #include <nlohmann/json.hpp>
 
-namespace talkheui::aheui
-{
-	enum class extension_type
-	{
-		lua,
-		aheui,
+namespace th::aheui {
+	enum class ExtensionType {
+		Lua,
 	};
 
-	class extension : public talkheui::extension
-	{
-	public:
-		virtual ~extension() override = default;
-
-	protected:
-		extension(extension_type type);
-		extension(extension_type type, extension_info info);
-		extension(extension&& extension) noexcept;
-
-	protected:
-		extension& operator=(extension&& extension) noexcept;
-
-	public:
-		virtual void send(long long value) = 0;
-		virtual long long receive() = 0;
-		virtual long long size() = 0;
-		virtual long long bytes() = 0;
-
-	protected:
-		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
-
-	public:
-		extension_type type() const noexcept;
-
+	class Extension : public th::Extension {
 	private:
-		extension_type type_;
-	};
-
-	class lua_extension final : public extension
-	{
-	public:
-		lua_extension();
-		lua_extension(const std::string& path);
-		lua_extension(lua_extension&& extension) noexcept;
-		virtual ~lua_extension() override = default;
+		ExtensionType m_Type;
 
 	public:
-		lua_extension& operator=(lua_extension&& extension) noexcept;
-
-	public:
-		virtual void send(long long value) override;
-		virtual long long receive() override;
-		virtual long long size() override;
-		virtual long long bytes() override;
+		virtual ~Extension() override = default;
 
 	protected:
-		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
-
-	private:
-		lua_engine lua_;
-	};
-
-	class aheui_extension final : public extension
-	{
-	public:
-		aheui_extension();
-		aheui_extension(const std::string& path);
-		aheui_extension(aheui_extension&& extension) noexcept;
-		virtual ~aheui_extension() override = default;
-
-	public:
-		aheui_extension& operator=(aheui_extension&& extension) noexcept;
-
-	public:
-		virtual void send(long long value) override;
-		virtual long long receive() override;
-		virtual long long size() override;
-		virtual long long bytes() override;
+		Extension(ExtensionType type);
+		Extension(ExtensionType type, ExtensionInfo info);
+		Extension(Extension&& extension) noexcept;
 
 	protected:
-		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) override;
+		Extension& operator=(Extension&& extension) noexcept;
 
-	private:
-		codeplane evt_send_, evt_receive_;
-		interpreter interpreter_;
+	public:
+		virtual void Send(long long value) = 0;
+		virtual long long Receive() = 0;
+		virtual long long Count() = 0;
+		virtual long long Bytes() = 0;
+
+	protected:
+		virtual void vOpen(const ZipReader& extension, const nlohmann::json& info) override;
+
+	public:
+		ExtensionType Type() const noexcept;
 	};
-	
-	extension* open_extension(const std::string& path);
-	extension* open_extension(const std::string& path, const zip_reader& extension, const nlohmann::json& extension_info);
+
+	class LuaExtension final : public Extension {
+	private:
+		Lua m_Lua;
+
+	public:
+		LuaExtension();
+		LuaExtension(const std::string& path);
+		LuaExtension(LuaExtension&& extension) noexcept;
+		virtual ~LuaExtension() override = default;
+
+	public:
+		LuaExtension& operator=(LuaExtension&& extension) noexcept;
+
+	public:
+		virtual void Send(long long value) override;
+		virtual long long Receive() override;
+		virtual long long Count() override;
+		virtual long long Bytes() override;
+
+	protected:
+		virtual void vOpen(const ZipReader& extension, const nlohmann::json& info) override;
+	};
+
+	Extension* OpenExtension(const std::string& path);
 }

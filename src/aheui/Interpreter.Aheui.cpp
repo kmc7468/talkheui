@@ -1,162 +1,103 @@
-﻿#include <talkheui/aheui/interpreter.hpp>
+﻿#include <th/aheui/Interpreter.hpp>
 
-#include <talkheui/aheui/extension.hpp>
-#include <talkheui/aheui/storage.hpp>
-#include <talkheui/encoding.hpp>
-#include <talkheui/hangul.hpp>
+#include <th/Encoding.hpp>
+#include <th/Hangul.hpp>
+#include <th/aheui/Extension.hpp>
+#include <th/aheui/Storage.hpp>
 
-#include <algorithm>
 #include <cstdio>
-#include <map>
-#include <string>
-#include <utility>
-#include <u5e/basic_grapheme.hpp>
+#include <unordered_map>
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 #	include <Windows.h>
 #endif
 
-namespace talkheui::aheui
-{
-	runtime_state::runtime_state()
-	{
-		reset();
+#include <u5e/basic_grapheme.hpp>
+
+namespace th::aheui {
+	RuntimeState::RuntimeState() {
+		Reset();
 	}
 
-	void runtime_state::reset()
-	{
-		memories().clear();
+	void RuntimeState::Reset() {
+		m_Memories.clear();
+		ResetStep();
+		SelectedStorage = 0;
 
-		for (int i = 0; i < 27; ++i)
-		{
-			memories().push_back(new stack());
+		for (int i = 0; i < 27; ++i) {
+			m_Memories.push_back(new Stack());
 		}
 
-		memories().insert(memories().begin() + 21, new queue());
-
-		reset_step();
+		m_Memories.insert(m_Memories.begin() + 21, new Queue());
 	}
-	void runtime_state::reset_step()
-	{
-		x_ = 0;
-		y_ = -1;
-		dx_ = 0;
-		dy_ = 1;
+	void RuntimeState::ResetStep() {
+		X = Y = 0;
+		DX = 0;
+		DY = 1;
 	}
 
-	int runtime_state::x() const noexcept
-	{
-		return x_;
+	aheui::Extension* RuntimeState::GetConstructedExtension() const noexcept {
+		return m_Extension;
 	}
-	void runtime_state::x(int new_x) noexcept
-	{
-		x_ = new_x;
-	}
-	int runtime_state::y() const noexcept
-	{
-		return y_;
-	}
-	void runtime_state::y(int new_y) noexcept
-	{
-		y_ = new_y;
-	}
-	int runtime_state::dx() const noexcept
-	{
-		return dx_;
-	}
-	void runtime_state::dx(int new_dx) noexcept
-	{
-		dx_ = new_dx;
-	}
-	int runtime_state::dy() const noexcept
-	{
-		return dy_;
-	}
-	void runtime_state::dy(int new_dy) noexcept
-	{
-		dy_ = new_dy;
-	}
-	aheui::extension* runtime_state::extension() const noexcept
-	{
-		return extension_;
-	}
-	void runtime_state::extension(aheui::extension* new_extension)
-	{
-		delete memories().back();
+	void RuntimeState::ConstructPipe(aheui::Extension* extension) {
+		delete m_Memories.back();
 
-		if (new_extension)
-		{
-			memories().back() = new pipe(new_extension);
-		}
-		else
-		{
-			memories().back() = new stack();
+		if (extension) {
+			m_Memories.back() = new Pipe(extension);
+		} else {
+			m_Memories.back() = new Stack();
 		}
 
-		extension_ = new_extension;
-	}
-	std::size_t runtime_state::selected_memory() const noexcept
-	{
-		return selected_memory_;
-	}
-	void runtime_state::selected_memory(std::size_t new_selected_memory) noexcept
-	{
-		selected_memory_ = new_selected_memory;
+		m_Extension = extension;
 	}
 }
 
-namespace talkheui::aheui
-{
-	interpreter::interpreter() noexcept
-		: talkheui::interpreter("Aheui")
-	{
-		state(new runtime_state());
+namespace th::aheui {
+	Interpreter::Interpreter()
+		: th::Interpreter("Aheui") {
+		State(new RuntimeState());
 	}
-	interpreter::interpreter(interpreter&& interpreter) noexcept
-		: talkheui::interpreter(std::move(interpreter)), script_(std::move(interpreter.script_)), result_(std::move(interpreter.result_))
-	{}
+	Interpreter::Interpreter(Interpreter&& interpreter) noexcept
+		: th::Interpreter(std::move(interpreter)), m_Script(std::move(interpreter.m_Script)), m_Result(std::move(interpreter.m_Result)) {
+	}
 
-	interpreter& interpreter::operator=(interpreter&& interpreter) noexcept
-	{
-		talkheui::interpreter::operator=(std::move(interpreter));
-		script_ = std::move(interpreter.script_);
-		result_ = std::move(interpreter.result_);
+	Interpreter& Interpreter::operator=(Interpreter&& interpreter) noexcept {
+		th::Interpreter::operator=(std::move(interpreter));
+
+		m_Script = std::move(interpreter.m_Script);
+		m_Result = std::move(interpreter.m_Result);
 		return *this;
 	}
 
-	void interpreter::unload_script()
-	{
-		script_.clear();
+	bool Interpreter::IsScriptLoaded() const {
+		return !m_Script.IsEmpty();
 	}
+	void Interpreter::UnloadScript() {
+		m_Script.Clear();
+		m_Result.reset();
+	}
+	void Interpreter::RunScript() {
+		m_Result.reset();
 
-	bool interpreter::is_loaded_script() const
-	{
-		return !script_.empty();
-	}
-	void interpreter::run_script()
-	{
-		while (!result_.has_value())
-		{
-			run_script_step();
+		while (!HasResult()) {
+			RunScriptStep();
 		}
 	}
-	void interpreter::run_script_step()
-	{
-		move_cursor();
+	void Interpreter::RunScriptStep() {
+		MoveCursor();
 
-		runtime_state* const s = static_cast<runtime_state*>(state());
-		u5e::basic_grapheme<std::u32string> command_grp = script_.at(s->x_, s->y_);
+		RuntimeState* const s = static_cast<RuntimeState*>(State());
+		Storage* const storage = static_cast<aheui::Storage*>(s->m_Memories[s->SelectedStorage]);
+		
+		u5e::basic_grapheme<std::u32string> commandGrp = m_Script.At(s->X, s->Y);
+		if (commandGrp.codepoint_end() - commandGrp.codepoint_begin() >= 2) return;
+		const char32_t command = *commandGrp.codepoint_begin();
+		if (!IsHangul(command)) return;
+		const Jaso commandJaso = GetJaso(command);
 
-		if (command_grp.codepoint_end() - command_grp.codepoint_begin() > 1) return;
-		const char32_t command = *command_grp.codepoint_begin();
-		if (!ishangul(command)) return;
+		UpdateCursor(commandJaso.Jungsung);
 
-		storage* const storage = static_cast<aheui::storage*>(s->memories()[s->selected_memory()]);
-		const jaso command_jaso = get_jaso(command);
-
-		update_cursor(s, command_jaso.jungsung);
-
-		static std::map<char32_t, long long> constants = {
+		static std::unordered_map<char32_t, long long> constants = {
 			{ 0, 0 },
 			{ U'ㄱ', 2 },
 			{ U'ㄴ', 2 },
@@ -184,7 +125,7 @@ namespace talkheui::aheui
 			{ U'ㅄ', 6 },
 			{ U'ㅆ', 4 },
 		};
-		static std::map<char32_t, int> storages = {
+		static std::unordered_map<char32_t, int> storages = {
 			{ 0, 0 },
 			{ U'ㄱ', 1 },
 			{ U'ㄲ', 2 },
@@ -215,20 +156,21 @@ namespace talkheui::aheui
 			{ U'ㅎ', 27 },
 		};
 
-		switch (command_jaso.chosung)
-		{
+		switch (commandJaso.Chosung) {
 		case U'ㅎ':
-			if (storage->size() == 0) result_ = 0;
-			else result_ = storage->pop();
+			if (storage->Count()) {
+				m_Result = storage->Pop();
+			} else {
+				m_Result = 0;
+			}
 			break;
 
 		case U'ㄷ':
 		case U'ㄸ':
 		case U'ㅌ':
 		case U'ㄴ':
-		case U'ㄹ':
-		{
-			static std::map<char32_t, long long(*)(long long, long long)> operators = {
+		case U'ㄹ': {
+			static std::unordered_map<char32_t, long long(*)(long long, long long)> operators = {
 				{ U'ㄷ', [](long long a, long long b) { return a + b; } },
 				{ U'ㄸ', [](long long a, long long b) { return a * b; } },
 				{ U'ㅌ', [](long long a, long long b) { return a - b; } },
@@ -236,43 +178,32 @@ namespace talkheui::aheui
 				{ U'ㄹ', [](long long a, long long b) { return a % b; } },
 			};
 
-			if (storage->size() < 2)
-			{
-				reverse_cursor();
-				break;
+			if (storage->Count() < 2) {
+				ReverseCursor();
+			} else {
+				const long long b = storage->Pop();
+				const long long a = storage->Pop();
+				storage->Push(operators[commandJaso.Chosung](a, b));
 			}
-			const long long b = storage->pop();
-			const long long a = storage->pop();
-			storage->push(operators[command_jaso.chosung](a, b));
-
 			break;
 		}
 
-		case U'ㅁ':
-		{
-			if (storage->size() < 1)
-			{
-				reverse_cursor();
+		case U'ㅁ': {
+			if (storage->Count() < 1) {
+				ReverseCursor();
 				break;
 			}
-			
-			long long v = storage->pop();
-			if (command_jaso.jongsung == U'ㅇ')
-			{
-				std::printf("%lld", v);
-			}
-			else if (command_jaso.jongsung == U'ㅎ')
-			{
-#if defined(_WIN32) || defined(_WIN64)
-				DWORD written;
 
-				if (v < 0x10000)
-				{
+			long long v = storage->Pop();
+			if (commandJaso.Jongsung == U'ㅇ') {
+				std::printf("%lld", v);
+			} else if (commandJaso.Jongsung == U'ㅎ') {
+#ifdef WIN32
+				DWORD written;
+				if (v < 0x10000) {
 					wchar_t vwc = static_cast<wchar_t>(v);
 					WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), &vwc, 1, &written, nullptr);
-				}
-				else
-				{
+				} else {
 					wchar_t units[2];
 					v -= 0x10000;
 					units[0] = v / 0x400 + 0xD800;
@@ -280,245 +211,199 @@ namespace talkheui::aheui
 					WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), units, 2, &written, nullptr);
 				}
 #else
-				const std::string v_str = utf32to8(std::u32string_view(reinterpret_cast<const char32_t*>(&v), 1));
-				std::printf("%s", reinterpret_cast<const char*>(v_str.c_str()));
+				const std::string vStr = UTF32To8(std::u32string_view(reinterpret_cast<const char32_t*>(&v), 1));
+				std::printf("%s", reinterpret_cast<const char*>(vStr.c_str()));
 #endif
 			}
 			break;
 		}
-		case U'ㅂ':
-		{
+
+		case U'ㅂ': {
 			long long v;
-			if (command_jaso.jongsung == U'ㅇ')
-			{
+			if (commandJaso.Jongsung == U'ㅇ') {
 				std::scanf("%lld", &v);
-			}
-			else if (command_jaso.jongsung == U'ㅎ')
-			{
-#if defined(_WIN32) || defined(_WIN64)
+			} else if (commandJaso.Jongsung == U'ㅎ') {
+#ifdef _WIN32
 				wchar_t units[2];
 				DWORD read;
-
 				ReadConsoleW(GetStdHandle(STD_INPUT_HANDLE), units, 1, &read, nullptr);
 
-				if ((units[0] & 0xD800) == 0xD800)
-				{
+				if ((units[0] & 0xD800) == 0xD800) {
 					ReadConsoleW(GetStdHandle(STD_INPUT_HANDLE), units + 1, 1, &read, nullptr);
 					v = (units[0] - 0xD800) * 0x400 + (units[1] - 0xDC00);
-				}
-				else
-				{
+				} else {
 					v = units[0];
 				}
 #else
 				unsigned char fb;
 				std::scanf("%c", reinterpret_cast<char*>(&fb));
-				if (fb < 0x80)
-				{
+				if (fb < 0x80) {
 					v = fb;
-				}
-				else if ((fb & 0xF0) == 0xF0)
-				{
+				} else if ((fb & 0xF0) == 0xF0) {
 					unsigned char sb, tb, frb;
 					std::scanf("%c%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb), reinterpret_cast<char*>(&frb));
 					v = ((fb & 0x07) << 18) + ((sb & 0x3F) << 12) + ((tb & 0x3F) << 6) + (frb & 0x3F);
-				}
-				else if ((fb & 0xE0) == 0xE0)
-				{
+				} else if ((fb & 0xE0) == 0xE0) {
 					unsigned char sb, tb;
 					std::scanf("%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb));
 					v = ((fb & 0x0F) << 12) + ((sb & 0x3F) << 6) + (tb & 0x3F);
-				}
-				else
-				{
+				} else {
 					unsigned char sb;
 					std::scanf("%c", reinterpret_cast<char*>(&sb));
 					v = ((fb & 0x1F) << 6) + (sb & 0x3F);
 				}
 #endif
+			} else {
+				v = constants[commandJaso.Jongsung];
 			}
-			else
-			{
-				v = constants[command_jaso.jongsung];
-			}
-			storage->push(v);
+			storage->Push(v);
 			break;
 		}
+
 		case U'ㅃ':
-		{
-			if (storage->size() < 1)
-			{
-				reverse_cursor();
-				break;
+			if (storage->Count() < 1) {
+				ReverseCursor();
+			} else {
+				storage->Copy();
 			}
-			storage->copy();
 			break;
-		}
+
 		case U'ㅍ':
-		{
-			if (storage->size() < 2)
-			{
-				reverse_cursor();
-				break;
+			if (storage->Count() < 2) {
+				ReverseCursor();
+			} else {
+				storage->Swap();
 			}
-			storage->swap();
 			break;
-		}
 
 		case U'ㅅ':
-		{
-			s->selected_memory_ = static_cast<std::size_t>(storages[command_jaso.jongsung]);
+			s->SelectedStorage = static_cast<std::size_t>(storages[commandJaso.Jongsung]);
+			break;
+
+		case U'ㅆ': {
+			if (storage->Count() < 1) {
+				ReverseCursor();
+			} else {
+				const int to = storages[commandJaso.Jongsung];
+				static_cast<aheui::Storage*>(s->m_Memories[static_cast<std::size_t>(to)])->Push(storage->Pop());
+			}
 			break;
 		}
-		case U'ㅆ':
-		{
-			if (storage->size() < 1)
-			{
-				reverse_cursor();
-				break;
+
+		case U'ㅈ': {
+			if (storage->Count() < 2) {
+				ReverseCursor();
+			} else {
+				const long long b = storage->Pop();
+				const long long a = storage->Pop();
+				storage->Push(a >= b);
 			}
-			const long long j = storages[command_jaso.jongsung];
-			static_cast<aheui::storage*>(s->memories()[static_cast<std::size_t>(j)])->push(storage->pop());
 			break;
 		}
-		case U'ㅈ':
-		{
-			if (storage->size() < 2)
-			{
-				reverse_cursor();
-				break;
-			}
-			const long long b = storage->pop();
-			const long long a = storage->pop();
-			storage->push(a >= b);
-			break;
-		}
-		case U'ㅊ':
-		{
-			if (storage->size() < 1)
-			{
-				reverse_cursor();
-				break;
-			}
-			const long long v = storage->pop();
-			if (!v)
-			{
-				reverse_cursor();
+
+		case U'ㅊ': {
+			if (storage->Count() < 1) {
+				ReverseCursor();
+			} else if (!storage->Pop()) {
+				ReverseCursor();
 			}
 			break;
 		}
 		}
 	}
 
-	void interpreter::construct_pipe(const std::string& path)
-	{
-		runtime_state* const s = static_cast<runtime_state*>(state());
-		s->extension(static_cast<aheui::extension*>(const_cast<talkheui::extension*>(extensions().at(path))));
+	void Interpreter::ConstructPipe(const std::string& path) {
+		RuntimeState* const s = static_cast<RuntimeState*>(State());
+		s->ConstructPipe(static_cast<aheui::Extension*>(const_cast<th::Extension*>(Extensions().at(path))));
 	}
-	void interpreter::deconstruct_pipe()
-	{
-		runtime_state* const s = static_cast<runtime_state*>(state());
-		s->extension(nullptr);
+	void Interpreter::DeconstructPipe() {
+		RuntimeState* const s = static_cast<RuntimeState*>(State());
+		s->ConstructPipe(nullptr);
 	}
 
-	void interpreter::reset_priv()
-	{
-		result_.reset();
+	void Interpreter::vReset() {
+		m_Result.reset();
 	}
 
-	void interpreter::load_script_priv(const std::string_view& script)
-	{
-		const std::u32string script_utf32 = utf8to32(script);
-		script_.parse(script_utf32);
+	void Interpreter::vLoadScript(const std::string_view& script) {
+		const std::u32string scriptUTF32 = UTF8To32(script);
+		m_Script.Parse(scriptUTF32);
 	}
 
-	void interpreter::move_cursor()
-	{
-		runtime_state* const s = static_cast<runtime_state*>(state());
+	void Interpreter::MoveCursor() {
+		RuntimeState* const s = static_cast<RuntimeState*>(State());
+		s->X += s->DX;
+		s->Y += s->DY;
 
-		s->x_ += s->dx_;
-		s->y_ += s->dy_;
-		
-		if (s->dy_ != 0)
-		{
-			const int ml = static_cast<int>(script_.max_lines());
-
-			if (s->y_ < 0) s->y_ = ml - 1;
-			else if (s->y_ >= ml) s->y_ = 0;
-		}
-		else
-		{
-			const int w = static_cast<int>(script_.at(s->y_).size());
-
-			if (s->x_ < 0) s->x_ = w - 1;
-			else if (s->x_ >= w) s->x_ = 0;
+		if (s->DY) {
+			const int ml = static_cast<int>(m_Script.MaxLines());
+			if (s->Y < 0) s->Y = ml - 1;
+			else if (s->Y >= ml) s->Y = 0;
+		} else {
+			const int w = static_cast<int>(m_Script.At(s->Y).size());
+			if (s->X < 0) s->X = w - 1;
+			else if (s->X >= w) s->X = 0;
 		}
 	}
-	void interpreter::reverse_cursor()
-	{
-		runtime_state* const s = static_cast<runtime_state*>(state());
-
-		s->dx_ = -s->dx_;
-		s->dy_ = -s->dy_;
+	void Interpreter::ReverseCursor() {
+		RuntimeState* const s = static_cast<RuntimeState*>(State());
+		s->DX = -s->DX;
+		s->DY = -s->DY;
 	}
-	void interpreter::update_cursor(runtime_state* state, char32_t jungsung)
-	{
-		switch (jungsung)
-		{
+	void Interpreter::UpdateCursor(char32_t jungsung) {
+		RuntimeState* const s = static_cast<RuntimeState*>(State());
+		switch (jungsung) {
 		case U'ㅏ':
-			state->dx_ = 1;
-			state->dy_ = 0;
+			s->DX = 1;
+			s->DY = 0;
 			break;
 		case U'ㅑ':
-			state->dx_ = 2;
-			state->dy_ = 0;
+			s->DX = 2;
+			s->DY = 0;
 			break;
 		case U'ㅓ':
-			state->dx_ = -1;
-			state->dy_ = 0;
+			s->DX = -1;
+			s->DY = 0;
 			break;
 		case U'ㅕ':
-			state->dx_ = -2;
-			state->dy_ = 0;
+			s->DX = -2;
+			s->DY = 0;
 			break;
 		case U'ㅗ':
-			state->dx_ = 0;
-			state->dy_ = -1;
+			s->DX = 0;
+			s->DY = -1;
 			break;
 		case U'ㅛ':
-			state->dx_ = 0;
-			state->dy_ = -2;
+			s->DX = 0;
+			s->DY = -2;
 			break;
 		case U'ㅜ':
-			state->dx_ = 0;
-			state->dy_ = 1;
+			s->DX = 0;
+			s->DY = 1;
 			break;
 		case U'ㅠ':
-			state->dx_ = 0;
-			state->dy_ = 2;
+			s->DX = 0;
+			s->DY = 2;
 			break;
 		case U'ㅡ':
-			state->dy_ = -state->dy_;
+			s->DY = -s->DY;
 			break;
 		case U'ㅣ':
-			state->dx_ = -state->dx_;
+			s->DX = -s->DX;
 			break;
 		case U'ㅢ':
-			reverse_cursor();
+			ReverseCursor();
 			break;
 		}
 	}
 
-	const codeplane& interpreter::script() const noexcept
-	{
-		return script_;
+	const CodePlane& Interpreter::Script() const noexcept {
+		return m_Script;
 	}
-	long long interpreter::result() const noexcept
-	{
-		return result_.value();
+	long long Interpreter::Result() const noexcept {
+		return m_Result.value();
 	}
-	bool interpreter::has_result() const noexcept
-	{
-		return result_.has_value();
+	bool Interpreter::HasResult() const noexcept {
+		return m_Result.has_value();
 	}
 }

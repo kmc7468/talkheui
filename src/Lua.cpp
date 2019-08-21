@@ -29,8 +29,9 @@ namespace th {
 		lua_pcall(m_State, 0, 0, 0);
 	}
 	
-	void Lua::GetGlobal(const std::string& name) {
+	bool Lua::GetGlobal(const std::string& name) {
 		lua_getglobal(m_State, name.c_str());
+		return lua_isnoneornil(m_State, 0);
 	}
 	void Lua::Push(long long number) {
 		lua_pushinteger(m_State, number);

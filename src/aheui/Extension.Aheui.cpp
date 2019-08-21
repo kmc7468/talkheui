@@ -1,212 +1,137 @@
 #ifdef _MSC_VER
-#pragma warning(disable: 4244 4996)
+#	pragma warning(disable: 4244 4996)
 #endif
 
-#include <talkheui/aheui/extension.hpp>
-#include <talkheui/encoding.hpp>
+#include <th/Encoding.hpp>
+#include <th/aheui/Extension.hpp>
 
 #include <algorithm>
 #include <cctype>
-#include <strstream>
+#include <utility>
 
-namespace
-{
-	struct free_
-	{
-		void operator()(const void* memory)
-		{
-			std::free(const_cast<void*>(memory));
+namespace th::aheui {
+	Extension::Extension(ExtensionType type)
+		: m_Type(type) {
+	}
+	Extension::Extension(ExtensionType type, ExtensionInfo info)
+		: th::Extension(std::move(info)), m_Type(type) {
+	}
+	Extension::Extension(Extension&& extension) noexcept
+		: th::Extension(std::move(extension)), m_Type(extension.m_Type) {
+	}
+
+	Extension& Extension::operator=(Extension&& extension) noexcept {
+		th::Extension::operator=(std::move(extension));
+		m_Type = extension.m_Type;
+
+		return *this;
+	}
+
+	void Extension::vOpen(const ZipReader&, const nlohmann::json& info) {
+		const auto type = info.find("Type");
+
+		if (type == info.end()) throw std::runtime_error("failed to find property \"Type\"");
+		if (type->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Type\" as string");
+
+		std::string typeStr = *type;
+		std::transform(typeStr.begin(), typeStr.end(), typeStr.begin(), std::tolower);
+
+		if (typeStr == "lua") {
+			m_Type = ExtensionType::Lua;
+		} else throw std::runtime_error("unsupported type");
+	}
+
+	ExtensionType Extension::Type() const noexcept {
+		return m_Type;
+	}
+}
+
+namespace {
+	struct Free final {
+		void operator()(const void* raw) const noexcept {
+			std::free(const_cast<void*>(raw));
 		}
 	};
 }
 
-namespace talkheui::aheui
-{
-	extension::extension(extension_type type)
-		: type_(type)
-	{}
-	extension::extension(extension_type type, extension_info info)
-		: talkheui::extension(info), type_(type)
-	{}
-	extension::extension(extension&& extension) noexcept
-		: talkheui::extension(std::move(extension)), type_(extension.type_)
-	{}
+namespace th::aheui {
+	LuaExtension::LuaExtension()
+		: Extension(ExtensionType::Lua) {
+	}
+	LuaExtension::LuaExtension(const std::string& path)
+		: LuaExtension() {
+		Open(path);
+	}
+	LuaExtension::LuaExtension(LuaExtension&& extension) noexcept
+		: Extension(std::move(extension)), m_Lua(std::move(extension.m_Lua)) {
+	}
+	
+	LuaExtension& LuaExtension::operator=(LuaExtension&& extension) noexcept {
+		Extension::operator=(std::move(extension));
+		m_Lua = std::move(extension.m_Lua);
 
-	extension& extension::operator=(extension&& extension) noexcept
-	{
-		talkheui::extension::operator=(std::move(extension));
-		type_ = extension.type_;
 		return *this;
 	}
 
-	void extension::open_priv(const zip_reader&, const nlohmann::json& extension_info)
-	{
-		std::string ext_type_str = extension_info["type"];
-		std::transform(ext_type_str.begin(), ext_type_str.end(), ext_type_str.begin(), [](char c){ return std::tolower(c); });
-		ext_type_str[0] = std::toupper(ext_type_str.front());
-
-		if (ext_type_str == "Lua") type_ = extension_type::lua;
-		else if (ext_type_str == "Aheui") type_ = extension_type::aheui;
-		else throw std::runtime_error("invalid type");
+	void LuaExtension::Send(long long value) {
+		m_Lua.GetGlobal("receive");
+		m_Lua.Push(value);
+		m_Lua.Call(1, 0);
+	}
+	long long LuaExtension::Receive() {
+		m_Lua.GetGlobal("send");
+		m_Lua.Call(0, 1);
+		return m_Lua.PopInteger();
+	}
+	long long LuaExtension::Count() {
+		m_Lua.GetGlobal("send_count");
+		m_Lua.Call(0, 1);
+		return m_Lua.PopInteger();
+	}
+	long long LuaExtension::Bytes() {
+		if (m_Lua.GetGlobal("send_bytes")) {
+			m_Lua.Call(0, 1);
+			return m_Lua.PopInteger();
+		} else return Count() * sizeof(long long);
 	}
 
-	extension_type extension::type() const noexcept
-	{
-		return type_;
-	}
-}
+	void LuaExtension::vOpen(const ZipReader& zip, const nlohmann::json& info) {
+		Extension::vOpen(zip, info);
 
-namespace talkheui::aheui
-{
-	lua_extension::lua_extension()
-		: extension(extension_type::lua)
-	{}
-	lua_extension::lua_extension(const std::string& path)
-		: lua_extension()
-	{
-		open(path);
-	}
-	lua_extension::lua_extension(lua_extension&& extension) noexcept
-		: aheui::extension(std::move(extension)), lua_(std::move(extension.lua_))
-	{}
+		const auto source = info.find("Source");
+		if (source == info.end()) throw std::runtime_error("failed to find property \"Source\"");
+		if (source->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Source\" as string");
+		const std::string sourceStr = *source;
 
-	lua_extension& lua_extension::operator=(lua_extension&& extension) noexcept
-	{
-		extension::operator=(std::move(extension));
-		lua_ = std::move(extension.lua_);
-		return *this;
-	}
+		const ZipReaderEntry script = zip.Find(sourceStr);
+		std::size_t scriptSize;
+		const void* const scriptRaw = script.Extract(&scriptSize);
+		const std::unique_ptr<const void, Free> scriptRAII(scriptRaw);
+		const std::string_view scriptString(static_cast<const char*>(scriptRaw), scriptSize);
 
-	void lua_extension::send(long long value)
-	{
-		lua_.getglobal("receive");
-		lua_.push(value);
-		lua_.call(1, 0);
-	}
-	long long lua_extension::receive()
-	{
-		lua_.getglobal("send");
-		lua_.call(0, 1);
-		return lua_.pop_integer();
-	}
-	long long aheui::lua_extension::size()
-	{
-		lua_.getglobal("send_size");
-		lua_.call(0, 1);
-		return lua_.pop_integer();
-	}
-	long long aheui::lua_extension::bytes()
-	{
-		lua_.getglobal("send_bytes");
-		lua_.call(0, 1);
-		return lua_.pop_integer();
-	}
-
-	void lua_extension::open_priv(const zip_reader& extension, const nlohmann::json& extension_info)
-	{
-		extension::open_priv(extension, extension_info);
-		
-		const std::string source_name = extension_info["source"];
-		const zip_reader_entry source = extension.find(source_name);
-		std::size_t source_data_size;
-		const void* source_data = source.extract(&source_data_size);
-		const std::unique_ptr<const void, free_> source_data_raii(source_data);
-		const std::string_view source_data_str(static_cast<const char*>(source_data), source_data_size);
-
-		lua_.load_script(source_data_str);
+		m_Lua.LoadScript(scriptString);
 	}
 }
 
-namespace talkheui::aheui
-{
-	aheui_extension::aheui_extension()
-		: extension(extension_type::aheui)
-	{}
-	aheui_extension::aheui_extension(const std::string& path)
-		: aheui_extension()
-	{
-		open(path);
-	}
-	aheui_extension::aheui_extension(aheui_extension&& extension) noexcept
-		: aheui::extension(std::move(extension)),
-		evt_send_(std::move(extension.evt_send_)), evt_receive_(std::move(extension.evt_receive_))
-	{}
+namespace th::aheui {
+	Extension* OpenExtension(const std::string& path) {
+		ZipReader zip(path);
 
-	aheui_extension& aheui_extension::operator=(aheui_extension&& extension) noexcept
-	{
-		extension::operator=(std::move(extension));
-		evt_send_ = std::move(extension.evt_send_);
-		evt_receive_ = std::move(extension.evt_receive_);
-		return *this;
-	}
+		const ZipReaderEntry info = zip.Find("Extension.json");
+		std::size_t infoSize;
+		const void* const infoRaw = info.Extract(&infoSize);
+		const std::unique_ptr<const void, Free> infoRAII(infoRaw);
+		const std::string_view infoString(static_cast<const char*>(infoRaw), infoSize);
+		const nlohmann::json infoJson = nlohmann::json::parse(infoString);
 
-	void aheui_extension::send(long long value)
-	{
-		// TODO
-	}
-	long long aheui_extension::receive()
-	{
-		// TODO
-		return 0;
-	}
-	long long aheui_extension::size()
-	{
-		// TODO
-		return 0;
-	}
-	long long aheui_extension::bytes()
-	{
-		// TODO
-		return 0;
-	}
+		const auto type = infoJson.find("Type");
+		if (type == infoJson.end()) throw std::runtime_error("failed to find property \"Type\"");
+		if (type->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Type\" as string");
 
-	void aheui_extension::open_priv(const zip_reader& extension, const nlohmann::json& extension_info)
-	{
-		extension::open_priv(extension, extension_info);
+		std::string typeStr = *type;
+		std::transform(typeStr.begin(), typeStr.end(), typeStr.begin(), std::tolower);
 
-		const nlohmann::json events = extension_info["events"];
-		
-		const std::string evt_send_name = events["send"];
-		const zip_reader_entry evt_send = extension.find(evt_send_name);
-		std::size_t evt_send_data_size;
-		const void* evt_send_data = evt_send.extract(&evt_send_data_size);
-		const std::unique_ptr<const void, free_> evt_send_data_raii(evt_send_data);
-		std::istrstream evt_send_data_stream(static_cast<const char*>(evt_send_data), static_cast<int>(evt_send_data_size));
-		evt_send_ = utf8to32(read_as_utf8(evt_send_data_stream));
-
-		const std::string evt_receive_name = events["receive"];
-		const zip_reader_entry evt_receive = extension.find(evt_receive_name);
-		std::size_t evt_receive_data_size;
-		const void* evt_receive_data = evt_receive.extract(&evt_receive_data_size);
-		const std::unique_ptr<const void, free_> evt_receive_data_raii(evt_receive_data);
-		std::istrstream evt_receive_data_stream(static_cast<const char*>(evt_receive_data), static_cast<int>(evt_receive_data_size));
-		evt_receive_ = utf8to32(read_as_utf8(evt_receive_data_stream));
-	}
-}
-
-namespace talkheui::aheui
-{
-	extension* open_extension(const std::string& path)
-	{
-		const zip_reader zip(path);
-
-		const zip_reader_entry ext_info = zip.find("extension.json");
-		std::size_t ext_info_data_size;
-		const void* ext_info_data = ext_info.extract(&ext_info_data_size);
-		const std::unique_ptr<const void, free_> ext_info_data_raii(ext_info_data);
-		const std::string_view ext_info_data_str(static_cast<const char*>(ext_info_data), ext_info_data_size);
-		const nlohmann::json ext_info_data_json = nlohmann::json::parse(ext_info_data_str);
-
-		return open_extension(path, zip, ext_info_data_json);
-	}
-	extension* open_extension(const std::string& path, const zip_reader&, const nlohmann::json& extension_info)
-	{
-		std::string ext_type_str = extension_info["type"];
-		std::transform(ext_type_str.begin(), ext_type_str.end(), ext_type_str.begin(), [](char c){ return std::tolower(c); });
-		ext_type_str[0] = std::toupper(ext_type_str.front());
-
-		if (ext_type_str == "Lua") return new lua_extension(path);
-		else if (ext_type_str == "Aheui") return new aheui_extension(path);
-		else throw std::runtime_error("invalid type");
+		if (typeStr == "lua") return new LuaExtension(path);
+		else throw std::runtime_error("unsupported type");
 	}
 }

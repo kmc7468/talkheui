@@ -1,84 +1,70 @@
-#include <talkheui/aheui/codeplane.hpp>
+#include <th/aheui/CodePlane.hpp>
 
 #include <utility>
+
 #include <u5e/basic_grapheme_iterator.hpp>
 
-namespace talkheui::aheui
-{
-	codeplane::codeplane(const std::u32string& code)
-	{
-		parse(code);
+namespace th::aheui {
+	CodePlane::CodePlane(const std::u32string& code) {
+		Parse(code);
 	}
-	codeplane::codeplane(codeplane&& code) noexcept
-		: lines_(std::move(code.lines_)), graphemes_(std::move(code.graphemes_))
-	{}
+	CodePlane::CodePlane(CodePlane&& code) noexcept
+		: m_Lines(std::move(code.m_Lines)), m_Graphemes(std::move(code.m_Graphemes)) {
+	}
 
-	codeplane& codeplane::operator=(codeplane&& code) noexcept
-	{
-		lines_ = std::move(code.lines_);
-		graphemes_ = std::move(code.graphemes_);
+	CodePlane& CodePlane::operator=(CodePlane&& code) noexcept {
+		m_Lines = std::move(code.m_Lines);
+		m_Graphemes = std::move(code.m_Graphemes);
 		return *this;
 	}
 
-	void codeplane::clear() noexcept
-	{
-		lines_.clear();
-		graphemes_.clear();
+	void CodePlane::Clear() noexcept {
+		m_Lines.clear();
+		m_Graphemes.clear();
 	}
-	bool codeplane::empty() const noexcept
-	{
-		return lines_.empty();
+	bool CodePlane::IsEmpty() const noexcept {
+		return m_Lines.empty();
 	}
-	void codeplane::parse(const std::u32string& code)
-	{
-		clear();
+	void CodePlane::Parse(const std::u32string& code) {
+		Clear();
 
-		using giter = u5e::basic_grapheme_iterator<std::u32string>;
-		
+		using GIter = u5e::basic_grapheme_iterator<std::u32string>;
+
 		std::size_t pos = 0, line = 0;
-		while ((line = code.find(U'\n', pos)) != std::u32string::npos)
-		{
-			std::u32string& line_str = lines_.emplace_back(code.substr(pos, line - pos));
+		while ((line = code.find(U'\n', pos)) != std::u32string::npos) {
+			std::u32string& lineStr = m_Lines.emplace_back(code.substr(pos, line - pos));
 			pos = line + 1;
 
-			if (!line_str.empty() && line_str.back() == U'\r') line_str.erase(line_str.end() - 1);
+			if (!lineStr.empty() && lineStr.back() == U'\r') {
+				lineStr.erase(lineStr.end() - 1);
+			}
 		}
 
-		if (pos < code.size())
-		{
-			std::u32string& line_str = lines_.emplace_back(code.substr(pos));
-			pos = line + 1;
+		if (pos < code.size()) {
+			m_Lines.emplace_back(code.substr(pos));
 		}
 
-		for (std::u32string& line_str : lines_)
-		{
-			const giter end = giter(line_str.begin(), line_str.end(), line_str.end());
-			std::vector<u5e::basic_grapheme<std::u32string>>& line_graphemes = graphemes_.emplace_back();
+		for (std::u32string& line : m_Lines) {
+			const GIter end(line.begin(), line.end(), line.end());
+			std::vector<u5e::basic_grapheme<std::u32string>>& lineGraphemes = m_Graphemes.emplace_back();
 
-			for (giter iter(line_str.begin(), line_str.end()); iter != end; ++iter)
-			{
-				line_graphemes.push_back(*iter);
+			for (GIter iter(line.begin(), line.end()); iter != end; ++iter) {
+				lineGraphemes.push_back(*iter);
 			}
 		}
 	}
 
-	u5e::basic_grapheme<std::u32string> codeplane::at(int x, int y) const noexcept
-	{
-		if (x >= at(y).size())
-		{
+	u5e::basic_grapheme<std::u32string> CodePlane::At(int x, int y) const noexcept {
+		if (x >= At(y).size()) {
 			static const std::u32string dummy_str = U" ";
 			return { dummy_str.begin(), dummy_str.begin() + 1 };
-		}
-
-		return graphemes_[static_cast<std::size_t>(y)][static_cast<std::size_t>(x)];
+		} else return m_Graphemes[static_cast<std::size_t>(y)][static_cast<std::size_t>(x)];
 	}
-	const std::vector<u5e::basic_grapheme<std::u32string>>& codeplane::at(int y) const noexcept
-	{
-		return graphemes_[static_cast<std::size_t>(y)];
+	const std::vector<u5e::basic_grapheme<std::u32string>>& CodePlane::At(int y) const noexcept {
+		return m_Graphemes[static_cast<std::size_t>(y)];
 	}
 
-	std::size_t codeplane::max_lines() const noexcept
-	{
-		return lines_.size();
+	std::size_t CodePlane::MaxLines() const noexcept {
+		return m_Lines.size();
 	}
 }
