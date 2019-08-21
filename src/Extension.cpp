@@ -37,7 +37,7 @@ namespace th {
 	void ExtensionResources::Add(std::string name, ZipReaderEntry resource) {
 		m_Resources.insert(std::make_pair(std::move(name), std::move(resource)));
 	}
-	std::map<std::string, ZipReaderEntry> th::ExtensionResources::Items() const {
+	std::map<std::string, ZipReaderEntry> ExtensionResources::Items() const {
 		return m_Resources;
 	}
 }
