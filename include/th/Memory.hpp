@@ -3,30 +3,29 @@
 #include <cstddef>
 #include <string>
 
-namespace talkheui
-{
-	class memory
+namespace th {
+	class Memory
 	{
-	public:
-		virtual ~memory() = default;
-
-	protected:
-		memory(std::string name) noexcept;
-		memory(const memory& memory);
-		memory(memory&& memory) noexcept;
-
-	protected:
-		memory& operator=(const memory& memory);
-		memory& operator=(memory&& memory) noexcept;
-
-	public:
-		virtual std::size_t bytes() const noexcept = 0;
-		virtual std::size_t size() const noexcept = 0;
-
-	public:
-		std::string name() const;
-
 	private:
-		std::string name_;
+		std::string m_Name;
+
+	public:
+		virtual ~Memory() = default;
+
+	protected:
+		Memory(std::string name) noexcept;
+		Memory(const Memory& memory);
+		Memory(Memory&& memory) noexcept;
+
+	protected:
+		Memory& operator=(const Memory& memory);
+		Memory& operator=(Memory&& memory) noexcept;
+
+	public:
+		virtual std::size_t Count() const noexcept = 0;
+		virtual std::size_t Bytes() const noexcept = 0;
+
+	public:
+		std::string Name() const;
 	};
 }

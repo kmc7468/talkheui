@@ -1,117 +1,90 @@
-#include <talkheui/interpreter.hpp>
+#include <th/Interpreter.hpp>
 
-#include <stdexcept>
 #include <utility>
 
-namespace talkheui
-{
-	runtime_state::~runtime_state()
-	{
-		for (memory* mem : memories_)
-		{
-			delete mem;
+namespace th {
+	RuntimeState::~RuntimeState() {
+		for (Memory* memory : m_Memories) {
+			delete memory;
 		}
 	}
 
-	std::vector<const memory*> runtime_state::memories() const
-	{
-		return std::vector<const memory*>(memories_.begin(), memories_.end());
-	}
-
-	std::vector<memory*>& runtime_state::memories() noexcept
-	{
-		return memories_;
-	}
-	void runtime_state::memories(std::vector<memory*> new_memories) noexcept
-	{
-		memories_ = std::move(new_memories);
+	std::vector<const Memory*> RuntimeState::Memories() const {
+		return { m_Memories.begin(), m_Memories.end() };
 	}
 }
 
-namespace talkheui
-{
-	interpreter::~interpreter()
-	{
-		delete state_;
+namespace th {
+	Interpreter::~Interpreter() {
+		delete m_State;
+	}
+	
+	Interpreter::Interpreter(std::string name) noexcept
+		: m_Name(std::move(name)) {
+	}
+	Interpreter::Interpreter(Interpreter&& interpreter) noexcept
+		: m_Name(std::move(interpreter.m_Name)), m_State(interpreter.m_State), m_Extensions(std::move(interpreter.m_Extensions)) {
+		interpreter.m_State = nullptr;
 	}
 
-	interpreter::interpreter(std::string name) noexcept
-		: name_(std::move(name))
-	{}
-	interpreter::interpreter(interpreter&& interpreter) noexcept
-		: name_(std::move(interpreter.name_)), state_(interpreter.state_), extensions_(std::move(interpreter.extensions_))
-	{
-		interpreter.state_ = nullptr;
-	}
+	Interpreter& Interpreter::operator=(Interpreter&& interpreter) noexcept {
+		m_Name = std::move(interpreter.m_Name);
+		m_State = interpreter.m_State;
+		m_Extensions = std::move(interpreter.m_Extensions);
 
-	interpreter& interpreter::operator=(interpreter&& interpreter) noexcept
-	{
-		name_ = std::move(interpreter.name_);
-		state_ = interpreter.state_;
-		extensions_ = std::move(interpreter.extensions_);
-		interpreter.state_ = nullptr;
+		interpreter.m_State = nullptr;
 		return *this;
 	}
-
-	void interpreter::reset()
-	{
-		reset_state();
-		unload_script();
-		reset_priv();
+	
+	void Interpreter::Reset() {
+		ResetState();
+		UnloadScript();
+		vReset();
 	}
-	void interpreter::reset_state()
-	{
-		state_->reset();
+	void Interpreter::ResetState() {
+		m_State->Reset();
 	}
-	void interpreter::reset_step()
-	{
-		state_->reset_step();
+	void Interpreter::ResetStep() {
+		m_State->ResetStep();
 	}
 
-	void interpreter::load_script(const std::string_view& script)
-	{
-		if (is_loaded_script()) unload_script();
-		load_script_priv(script);
-	}
-	void interpreter::run(const std::string_view& script)
-	{
-		load_script(script);
-		run_script();
+	void Interpreter::LoadScript(const std::string_view& script) {
+		UnloadScript();
+		vLoadScript(script);
 	}
 
-	void interpreter::load_extension(const std::string& path)
-	{
-		if (extensions_.find(path) != extensions_.end()) throw std::runtime_error("already loaded extension");
-
-		extensions_.insert(std::make_pair(path, open_extension(path)));
-	}
-	void interpreter::unload_extension(const std::string& path)
-	{
-		auto iter = extensions_.find(path);
-		if (iter == extensions_.end()) throw std::runtime_error("failed to find the extension");
-
-		extensions_.erase(iter);
+	void Interpreter::Run(const std::string_view& script) {
+		LoadScript(script);
+		RunScript();
 	}
 
-	std::string interpreter::name() const
-	{
-		return name_;
+	void Interpreter::LoadExtension(const std::string& path) {
+		if (m_Extensions.find(path) != m_Extensions.end()) throw std::runtime_error("already loaded extension");
+		m_Extensions.insert(std::make_pair(path, OpenExtension(path)));
 	}
-	const runtime_state* interpreter::state() const noexcept
-	{
-		return state_;
+	void Interpreter::UnloadExtension(const std::string& path) {
+		const auto iter = m_Extensions.find(path);
+		if (iter == m_Extensions.end()) throw std::runtime_error("failed to find the extension");
+		m_Extensions.erase(iter);
 	}
-	runtime_state* interpreter::state() noexcept
-	{
-		return state_;
+
+	std::string Interpreter::Name() const {
+		return m_Name;
 	}
-	void interpreter::state(runtime_state* new_state) noexcept
-	{
-		delete state_;
-		state_ = new_state;
+	const RuntimeState* Interpreter::State() const noexcept {
+		return m_State;
 	}
-	std::map<std::string, const extension*> interpreter::extensions() const
-	{
-		return std::map<std::string, const extension*>(extensions_.begin(), extensions_.end());
+	RuntimeState* Interpreter::State() noexcept {
+		return m_State;
+	}
+	void Interpreter::State(RuntimeState* newState) noexcept {
+		if (m_State == newState) return;
+
+		delete m_State;
+		m_State = newState;
+	}
+
+	std::map<std::string, const Extension*> Interpreter::Extensions() const {
+		return { m_Extensions.begin(), m_Extensions.end() };
 	}
 }

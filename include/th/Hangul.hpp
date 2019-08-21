@@ -1,14 +1,12 @@
 #pragma once
 
-namespace talkheui
-{
-	struct jaso
-	{
-		char32_t chosung;
-		char32_t jungsung;
-		char32_t jongsung;
+namespace th {
+	struct Jaso final {
+		char32_t Chosung;
+		char32_t Jungsung;
+		char32_t Jongsung;
 	};
 
-	bool ishangul(char32_t c) noexcept;
-	jaso get_jaso(char32_t hangul) noexcept;
+	bool IsHangul(char32_t c) noexcept;
+	Jaso GetJaso(char32_t hangul) noexcept;
 }

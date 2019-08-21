@@ -1,190 +1,155 @@
-#include <talkheui/encoding.hpp>
+#include <th/Encoding.hpp>
 
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <ios>
+#include <iterator>
 #include <stdexcept>
+
 #include <utf8/utf8.h>
 
-namespace
-{
-	enum class encoding
-	{
-		utf8,
-		utf16,
-		utf16be,
-		utf32,
-		utf32be,
+namespace {
+	enum class Encoding {
+		UTF8,
+		UTF16,
+		UTF16BE,
+		UTF32,
+		UTF32BE,
 	};
+	Encoding DetectEncoding(std::ifstream& stream) {
+		static constexpr std::uint8_t UTF8Bom[] = { 0xEF, 0xBB, 0xBF };
+		static constexpr std::uint8_t UTF16Bom[] = { 0xFF, 0xFE };
+		static constexpr std::uint8_t UTF16BEBom[] = { 0xFE, 0xFF };
+		static constexpr std::uint8_t UTF32Bom[] = { 0xFF, 0xFE, 0, 0 };
+		static constexpr std::uint8_t UTF32BEBom[] = { 0, 0, 0xFE, 0xFF };
 
-	encoding detect_encoding(std::istream& stream)
-	{
-		static constexpr std::uint8_t utf8_bom[] = { 0xEF, 0xBB, 0xBF };
-		static constexpr std::uint8_t utf16_bom[] = { 0xFF, 0xFE };
-		static constexpr std::uint8_t utf16be_bom[] = { 0xFE, 0xFF };
-		static constexpr std::uint8_t utf32_bom[] = { 0xFF, 0xFE, 0, 0 };
-		static constexpr std::uint8_t utf32be_bom[] = { 0, 0, 0xFE, 0xFF };
-		
 		const std::streampos pos = stream.tellg();
 
-		std::uint8_t bom_buf[4];
-		stream.read(reinterpret_cast<char*>(bom_buf), 4);
+		std::uint8_t bomBuffer[4];
+		stream.read(reinterpret_cast<char*>(bomBuffer), 4);
+		const std::streamsize readCount = stream.gcount();
 
-		const std::streamsize read_count = stream.gcount();
-		if (read_count == 0) return encoding::utf8;
-
-		if (read_count == 4)
-		{
-			if (std::equal(bom_buf, bom_buf + 4, utf32_bom)) return encoding::utf32;
-			else if (std::equal(bom_buf, bom_buf + 4, utf32be_bom)) return encoding::utf32be;
+		if (readCount == 4) {
+			if (std::equal(bomBuffer, bomBuffer + 4, UTF32Bom)) return Encoding::UTF32;
+			else if (std::equal(bomBuffer, bomBuffer + 4, UTF32BEBom)) return Encoding::UTF32BE;
 		}
-		if (read_count >= 3 && std::equal(bom_buf, bom_buf + 3, utf8_bom))
-		{
-			stream.clear();
-			stream.seekg(pos + static_cast<std::streamoff>(3), std::ios::beg);
-			return encoding::utf8;
-		}
-		if (read_count >= 2)
-		{
-			if (std::equal(bom_buf, bom_buf + 2, utf16_bom))
-			{
+		if (readCount == 3) {
+			if (std::equal(bomBuffer, bomBuffer + 3, UTF8Bom)) {
 				stream.clear();
-				stream.seekg(pos + static_cast<std::streamoff>(2), std::ios::beg);
-				return encoding::utf16;
+				stream.seekg(pos + static_cast<std::streamoff>(3), std::ios::beg);
+				return Encoding::UTF8;
 			}
-			else if (std::equal(bom_buf, bom_buf + 2, utf16be_bom))
-			{
+		}
+		if (readCount == 2) {
+			if (std::equal(bomBuffer, bomBuffer + 2, UTF16Bom)) {
 				stream.clear();
 				stream.seekg(pos + static_cast<std::streamoff>(2), std::ios::beg);
-				return encoding::utf16be;
+				return Encoding::UTF16;
+			} else if (std::equal(bomBuffer, bomBuffer + 2, UTF16BEBom)) {
+				stream.clear();
+				stream.seekg(pos + static_cast<std::streamoff>(2), std::ios::beg);
+				return Encoding::UTF16BE;
 			}
 		}
 
 		stream.clear();
-		stream.seekg(pos, std::ios::beg);
-		return encoding::utf8;
+		stream.seekg(static_cast<std::streamoff>(pos), std::ios::beg);
+		return Encoding::UTF8;
 	}
 }
 
-namespace
-{
-	enum class endian
-	{
-		little,
-		big,
+namespace {
+	enum class Endian {
+		Little,
+		Big,
 	};
-
-	endian detect_endian()
-	{
+	Endian DetectEndian() {
 		const std::uint32_t temp = 0x12345678;
-		if (*reinterpret_cast<const std::uint8_t*>(&temp) == 0x78) return endian::little;
-		else if (*reinterpret_cast<const std::uint8_t*>(&temp) == 0x12) return endian::big;
+		if (*reinterpret_cast<const std::uint8_t*>(&temp) == 0x78) return Endian::Little;
+		else if (*reinterpret_cast<const std::uint8_t*>(&temp) == 0x12) return Endian::Big;
 		else throw std::runtime_error("unsupported platform");
 	}
 }
 
-namespace talkheui
-{
-	std::u32string utf8to32(const std::string_view& utf8)
-	{
+namespace th {
+	std::u32string UTF8To32(const std::string_view& utf8) {
 		std::u32string result;
-		utf8::utf8to32(utf8.begin(), utf8.end(), std::back_inserter(result));
-		return result;
+		return utf8::utf8to32(utf8.begin(), utf8.end(), std::back_inserter(result)), result;
 	}
-	std::string utf32to8(const std::u32string_view& utf32)
-	{
+	std::string UTF32To8(const std::u32string_view& utf32) {
 		std::string result;
-		utf8::utf32to8(utf32.begin(), utf32.end(), std::back_inserter(result));
-		return result;
+		return utf8::utf32to8(utf32.begin(), utf32.end(), std::back_inserter(result)), result;
 	}
-	std::u16string utf8to16(const std::string_view& utf8)
-	{
+	std::u16string UTF8To16(const std::string_view& utf8) {
 		std::u16string result;
-		utf8::utf8to16(utf8.begin(), utf8.end(), std::back_inserter(result));
-		return result;
+		return utf8::utf8to16(utf8.begin(), utf8.end(), std::back_inserter(result)), result;
 	}
-	std::string utf16to8(const std::u16string_view& utf16)
-	{
+	std::string UTF16To8(const std::u16string_view& utf16) {
 		std::string result;
-		utf8::utf16to8(utf16.begin(), utf16.end(), std::back_inserter(result));
-		return result;
+		return utf8::utf16to8(utf16.begin(), utf16.end(), std::back_inserter(result)), result;
 	}
-	std::u16string utf32to16(const std::u32string_view& utf32)
-	{
-		return utf8to16(utf32to8(utf32));
+	std::u16string UTF32To16(const std::u32string_view& utf32) {
+		return UTF8To16(UTF32To8(utf32));
 	}
-	std::u32string utf16to32(const std::u16string_view& utf16)
-	{
-		return utf8to32(utf16to8(utf16));
+	std::u32string UTF16To32(const std::u16string_view& utf16) {
+		return UTF8To32(UTF16To8(utf16));
 	}
 
-	std::string read_as_utf8(const std::string& path)
-	{
+	std::string ReadAsUTF8(const std::string& path) {
 		std::ifstream file(path);
 		if (!file) throw std::runtime_error("failed to open the file");
-
-		return read_as_utf8(file);
+		return ReadAsUTF8(file);
 	}
-	std::string read_as_utf8(std::istream& stream)
-	{
-		const encoding enc = detect_encoding(stream);
+	std::string ReadAsUTF8(std::istream& stream) {
+		const Encoding encoding = DetectEncoding(stream);
+		const Endian endian = DetectEndian();
 
 		const std::streampos pos = stream.tellg();
 		stream.seekg(0, std::ios::end);
-		const std::streamoff length = stream.tellg() - pos;
-		stream.seekg(pos, std::ios::beg);
+		const std::size_t length = static_cast<std::size_t>(stream.tellg() - pos);
+		stream.seekg(static_cast<std::streamoff>(pos), std::ios::beg);
 
-		static const endian end = detect_endian();
-
-		switch (enc)
-		{
-		case encoding::utf8:
-		{
-			std::string result(static_cast<std::size_t>(length), 0);
+		switch (encoding) {
+		case Encoding::UTF8: {
+			std::string	result(length, 0);
 			stream.read(result.data(), static_cast<std::streamsize>(result.size()));
-			const std::string::iterator invalid_iter = utf8::find_invalid(result.begin(), result.end());
+			const std::string::iterator invalidIter = utf8::find_invalid(result.begin(), result.end());
 
-			if (invalid_iter != result.end()) throw std::runtime_error("invalid encoding");
+			if (invalidIter != result.end()) throw std::runtime_error("invalid encoding");
 			return result;
 		}
 
-		case encoding::utf16:
-		case encoding::utf16be:
-		{
-			if (static_cast<std::size_t>(length - pos) % 2) throw std::runtime_error("invalid encoding");
+		case Encoding::UTF16:
+		case Encoding::UTF16BE: {
+			if (length % 2) throw std::runtime_error("invalid encoding");
+			
+			std::u16string result(length / 2, 0);
+			stream.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(length));
 
-			std::u16string result(static_cast<std::size_t>(length) / 2, 0);
-			stream.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(result.size()) * 2);
-
-			if ((end == endian::little && enc == encoding::utf16be) || (end == endian::big && enc == encoding::utf16))
-			{
-				std::transform(result.begin(), result.end(), result.begin(), [](char16_t c)
-					{
-						return static_cast<char16_t>(((c & 0xFF) << 8) | ((c & 0xFF00) >> 8));
-					});
+			if (static_cast<int>(endian) != static_cast<int>(encoding) - static_cast<int>(Encoding::UTF16)) {
+				std::transform(result.begin(), result.end(), result.begin(), [](char16_t c) {
+					return static_cast<char16_t>(((c & 0xFF) << 8) | ((c & 0xFF00) >> 8));
+				});
 			}
 
-			return utf16to8(result);
+			return UTF16To8(result);
 		}
 
-		case encoding::utf32:
-		case encoding::utf32be:
-		{
-			if (static_cast<std::size_t>(length - pos) % 4) throw std::runtime_error("invalid encoding");
+		case Encoding::UTF32:
+		case Encoding::UTF32BE: {
+			if (length % 4) throw std::runtime_error("invalid encoding");
+			
+			std::u32string result(length / 4, 0);
+			stream.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(length));
 
-			std::u32string result(static_cast<std::size_t>(length) / 4, 0);
-			stream.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(result.size()) * 4);
-
-			if ((end == endian::little && enc == encoding::utf32be) || (end == endian::big && enc == encoding::utf32))
-			{
-				std::transform(result.begin(), result.end(), result.begin(), [](char32_t c)
-					{
-						return static_cast<char32_t>(((c & 0xFF000000) >> 24) | ((c & 0xFF0000) >> 8) | ((c & 0xFF00) << 8) | ((c & 0xFF) << 24));
-					});
+			if (static_cast<int>(endian) != static_cast<int>(encoding) - static_cast<int>(Encoding::UTF32)) {
+				std::transform(result.begin(), result.end(), result.begin(), [](char16_t c) {
+					return static_cast<char32_t>(((c & 0xFF000000) >> 24) | ((c & 0xFF0000) >> 8) | ((c & 0xFF00) << 8) | ((c & 0xFF) << 24));
+				});
 			}
 
-			return utf32to8(result);
+			return UTF32To8(result);
 		}
 
 		default:

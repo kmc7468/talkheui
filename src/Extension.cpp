@@ -1,154 +1,163 @@
 #ifdef _MSC_VER
-#pragma warning(disable: 4244)
+#	pragma warning(disable: 4244)
 #endif
 
-#include <talkheui/aheui/extension.hpp>
-#include <talkheui/extension.hpp>
+#include <th/Extension.hpp>
+#include <th/Aheui/Extension.hpp>
 
-#include <algorithm>
-#include <cctype>
+#include <cstddef>
 #include <cstdlib>
-#include <memory>
-#include <utility>
 #include <string_view>
+#include <utility>
 
-namespace talkheui
-{
-	extension_resources::extension_resources(extension_resources&& resources) noexcept
-		: resources_(std::move(resources.resources_))
-	{}
+namespace th {
+	ExtensionResources::ExtensionResources(ExtensionResources&& resources) noexcept
+		: m_Resources(std::move(resources.m_Resources)) {
+	}
 
-	extension_resources& extension_resources::operator=(extension_resources&& resources) noexcept
-	{
-		resources_ = std::move(resources.resources_);
+	ExtensionResources& ExtensionResources::operator=(ExtensionResources&& resources) noexcept {
+		m_Resources = std::move(resources.m_Resources);
 		return *this;
 	}
-	zip_reader_entry extension_resources::operator[](const std::string& name) const
-	{
-		return resources_.at(name);
+	ZipReaderEntry ExtensionResources::operator[](const std::string& name) const {
+		return m_Resources.at(name);
 	}
 
-	std::map<std::string, zip_reader_entry>::const_iterator extension_resources::find(const std::string& name) const
-	{
-		return resources_.find(name);
+	void ExtensionResources::Add(std::string name, ZipReaderEntry resource) {
+		m_Resources.insert(std::make_pair(std::move(name), std::move(resource)));
 	}
-	void extension_resources::add(std::string name, zip_reader_entry resource)
-	{
-		resources_.insert(std::make_pair(std::move(name), std::move(resource)));
-	}
-	std::map<std::string, zip_reader_entry> extension_resources::list() const
-	{
-		return resources_;
+	std::map<std::string, ZipReaderEntry> th::ExtensionResources::Items() const {
+		return m_Resources;
 	}
 }
 
-namespace talkheui
-{
-	namespace
-	{
-		struct free
-		{
-			void operator()(const void* memory)
-			{
-				std::free(const_cast<void*>(memory));
-			}
-		};
+namespace {
+	struct Free final {
+		void operator()(const void* raw) const noexcept {
+			std::free(const_cast<void*>(raw));
+		}
+	};
+}
+
+namespace th {
+	Extension::Extension(ExtensionInfo info)
+		: m_Info(std::move(info)) {
+	}
+	Extension::Extension(Extension&& extension) noexcept
+		: m_Info(std::move(m_Info)), m_Resources(std::move(extension.m_Resources)), m_Zip(std::move(extension.m_Zip)) {
 	}
 
-	extension::extension(extension_info info)
-		: info_(std::move(info))
-	{}
-	extension::extension(extension&& extension) noexcept
-		: info_(std::move(extension.info_)), resources_(std::move(extension.resources_))
-	{}
-
-	extension& extension::operator=(extension&& extension) noexcept
-	{
-		info_ = std::move(extension.info_);
-		resources_ = std::move(extension.resources_);
+	Extension& Extension::operator=(Extension&& extension) noexcept {
+		m_Info = std::move(extension.m_Info);
+		m_Resources = std::move(extension.m_Resources);
+		m_Zip = std::move(extension.m_Zip);
 		return *this;
 	}
 
-	void extension::open(const std::string& path)
-	{
-		zip_reader zip(path);
+	void Extension::Open(const std::string& path) {
+		Close();
 
-		// extension.json
-		const zip_reader_entry ext_info = zip.find("extension.json");
-		std::size_t ext_info_data_size;
-		const void* ext_info_data = ext_info.extract(&ext_info_data_size);
-		const std::unique_ptr<const void, talkheui::free> ext_info_data_raii(ext_info_data);
-		const std::string_view ext_info_data_str(static_cast<const char*>(ext_info_data), ext_info_data_size);
-		const nlohmann::json ext_info_data_json = nlohmann::json::parse(ext_info_data_str);
+		const ZipReader zip(path);
 
-		info_.name = ext_info_data_json["name"];
-		info_.target = ext_info_data_json["target"];
+		// Extension.json
+		const ZipReaderEntry info = zip.Find("Extension.json");
+		std::size_t infoSize;
+		const void* const infoRaw = info.Extract(&infoSize);
+		const std::unique_ptr<const void, Free> infoRAII(infoRaw);
+		const std::string_view infoString(static_cast<const char*>(infoRaw), infoSize);
+		const nlohmann::json infoJson = nlohmann::json::parse(infoString);
 
-		if (info_.target.empty()) throw std::runtime_error("invalid extension");
+		const auto name = infoJson.find("Name");
+		const auto target = infoJson.find("Target");
 
-		std::transform(info_.target.begin(), info_.target.end(), info_.target.begin(), [](char c){ return std::tolower(c); });
-		info_.target[0] = std::toupper(info_.target.front());
+		if (name == infoJson.end()) throw std::runtime_error("failed to find property \"Name\"");
+		if (name->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Name\" as string");
+		if (target == infoJson.end()) throw std::runtime_error("failed to find property \"Target\"");
+		if (target->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Target\" as string");
+		
+		m_Info.Name = *name;
+		m_Info.Target = ToEnum<ExtensionTarget>(*target);
 
-		for (auto iter = ext_info_data_json.begin(); iter != ext_info_data_json.end(); ++iter)
-		{
-			if (iter.key() == "developer") info_.developer = *iter;
-			else if (iter.key() == "description") info_.description = *iter;
+		if (m_Info.Target == ExtensionTarget::None) throw std::runtime_error("unsupported target language");
+
+		for (auto iter = infoJson.begin(); iter != infoJson.end(); ++iter) {
+			if (iter.key() == "Developer") {
+				if (iter->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Developer\" as string");
+				m_Info.Developer = *iter;
+			} else if (iter.key() == "Description") {
+				if (iter->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Description\" as string");
+				m_Info.Description = *iter;
+			}
 		}
 
-		// res
-		for (std::size_t i = 0; i < zip.size(); ++i)
-		{
-			const zip_reader_entry entry = zip[i];
-			if (entry.is_directory()) continue;
+		ExtensionResources resources;
 
-			const std::string entry_name = entry.filename();
-			if (std::string_view(entry_name.data(), 4) != "res/") continue;
+		for (std::size_t i = 0; i < zip.Count(); ++i) {
+			const ZipReaderEntry entry = zip[i];
+			if (entry.IsDirectory()) continue;
 
-			resources_.add(entry_name.substr(4), entry);
+			const std::string entryName = entry.FileName();
+			if (std::string_view(entryName.data(), 4) != "res/") continue;
+
+			resources.Add(entryName.substr(4), entry);
 		}
 
-		open_priv(zip, ext_info_data_json);
+		vOpen(zip, infoJson);
 
-		zip_ = std::move(zip);
+		m_Zip = std::move(zip);
+		m_Resources = std::move(resources);
+	}
+	void Extension::Close() noexcept {
+		if (m_Zip.IsOpen()) {
+			m_Info = ExtensionInfo();
+			m_Resources = ExtensionResources();
+			m_Zip.Close();
+		}
 	}
 
-	std::string extension::name() const
-	{
-		return info_.name;
+	std::string Extension::Name() const {
+		return m_Info.Name;
 	}
-	std::string extension::developer() const
-	{
-		return info_.developer;
-	}
-	std::string extension::description() const
-	{
-		return info_.description;
-	}
-	std::string talkheui::extension::target() const
-	{
-		return info_.target;
-	}
-	const extension_resources& extension::resources() const
-	{
-		return resources_;
+	ExtensionTarget Extension::Target() const noexcept {
+		return m_Info.Target;
 	}
 
-	extension* open_extension(const std::string& path)
-	{
-		const zip_reader zip(path);
+	std::string Extension::Developer() const {
+		return m_Info.Developer;
+	}
+	std::string Extension::Description() const {
+		return m_Info.Description;
+	}
 
-		const zip_reader_entry ext_info = zip.find("extension.json");
-		std::size_t ext_info_data_size;
-		const void* ext_info_data = ext_info.extract(&ext_info_data_size);
-		const std::unique_ptr<const void, talkheui::free> ext_info_data_raii(ext_info_data);
-		const std::string_view ext_info_data_str(static_cast<const char*>(ext_info_data), ext_info_data_size);
-		const nlohmann::json ext_info_data_json = nlohmann::json::parse(ext_info_data_str);
+	const ExtensionResources& Extension::Resources() const {
+		return m_Resources;
+	}
 
-		std::string target = ext_info_data_json["target"];
-		std::transform(target.begin(), target.end(), target.begin(), [](char c){ return std::tolower(c); });
-		target[0] = std::toupper(target.front());
+	Extension* OpenExtension(const std::string& path) {
+		ZipReader zip(path);
 
-		if (target == "Aheui") return aheui::open_extension(path, zip, ext_info_data_json);
-		else throw std::runtime_error("invalid target");
+		const ZipReaderEntry info = zip.Find("Extension.json");
+		std::size_t infoSize;
+		const void* const infoRaw = info.Extract(&infoSize);
+		const std::unique_ptr<const void, Free> infoRAII(infoRaw);
+		const std::string_view infoString(static_cast<const char*>(infoRaw), infoSize);
+		const nlohmann::json infoJson = nlohmann::json::parse(infoString);
+
+		const auto target = infoJson.find("Target");
+		if (target == infoJson.end()) throw std::runtime_error("failed to find property \"Target\"");
+		if (target->type() != nlohmann::json::value_t::string) throw std::runtime_error("failed to read property \"Target\" as string");
+
+		const ExtensionTarget targetEnum = ToEnum<ExtensionTarget>(*target);
+		if (targetEnum == ExtensionTarget::None) throw std::runtime_error("unsupported target language");
+
+		zip.Close();
+
+		switch (targetEnum) {
+		case ExtensionTarget::Aheui:
+			return Aheui::OpenExtension(path);
+		
+		default:
+			return nullptr;
+		}
 	}
 }

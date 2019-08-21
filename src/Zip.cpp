@@ -1,129 +1,103 @@
-#include <talkheui/zip.hpp>
+#include <th/Zip.hpp>
 
 #include <cassert>
 #include <cstring>
 #include <stdexcept>
 
-namespace talkheui
-{
-	zip_reader_entry::zip_reader_entry(const zip_reader_entry& entry) noexcept
-		: archive_(entry.archive_), index_(entry.index_)
-	{}
+namespace th {
+	ZipReaderEntry::ZipReaderEntry(std::weak_ptr<mz_zip_archive> archive, std::size_t index) noexcept
+		: m_Archive(archive), m_Index(index) {
+	}
+	ZipReaderEntry::ZipReaderEntry(const ZipReaderEntry& entry) noexcept
+		: m_Archive(entry.m_Archive), m_Index(entry.m_Index) {
+	}
 
-	zip_reader_entry::zip_reader_entry(std::weak_ptr<mz_zip_archive> archive, std::size_t index) noexcept
-		: archive_(archive), index_(index)
-	{}
-
-	zip_reader_entry& zip_reader_entry::operator=(const zip_reader_entry& entry) noexcept
-	{
-		archive_ = entry.archive_;
-		index_ = entry.index_;
+	ZipReaderEntry& ZipReaderEntry::operator=(const ZipReaderEntry& entry) noexcept {
+		m_Archive = entry.m_Archive;
+		m_Index = entry.m_Index;
 		return *this;
 	}
 
-	bool zip_reader_entry::is_directory() const noexcept
-	{
-		return mz_zip_reader_is_file_a_directory(archive_.lock().get(), index_);
+	bool ZipReaderEntry::IsDirectory() const noexcept {
+		return mz_zip_reader_is_file_a_directory(m_Archive.lock().get(), m_Index);
 	}
-	bool zip_reader_entry::is_file() const noexcept
-	{
-		return !is_directory();
+	bool ZipReaderEntry::IsFile() const noexcept {
+		return !IsDirectory();
 	}
-	bool zip_reader_entry::is_encrypted() const noexcept
-	{
-		return mz_zip_reader_is_file_encrypted(archive_.lock().get(), index_);
+	bool ZipReaderEntry::IsEncrypted() const noexcept {
+		return mz_zip_reader_is_file_encrypted(m_Archive.lock().get(), m_Index);
 	}
-	void* zip_reader_entry::extract(std::size_t* size) const
-	{
-		std::size_t size_internal;
-		void* result = mz_zip_reader_extract_to_heap(archive_.lock().get(), index_, &size_internal, 0);
-
-		if (!result) throw std::runtime_error("failed to extract the zip entry");
-		if (size)* size = size_internal;
-
-		return result;
-	}
-	std::string zip_reader_entry::filename() const
-	{
-		std::shared_ptr<mz_zip_archive> archive_lock = archive_.lock();
-		const std::size_t size = mz_zip_reader_get_filename(archive_lock.get(), index_, nullptr, 0) - 1;
+	std::string ZipReaderEntry::Filename() const {
+		std::shared_ptr<mz_zip_archive> archiveLock = m_Archive.lock();
+		const std::size_t size = mz_zip_reader_get_filename(archiveLock.get(), m_Index, nullptr, 0) - 1;
 
 		std::string result(size, 0);
-		mz_zip_reader_get_filename(archive_lock.get(), index_, result.data(), size + 1);
+		mz_zip_reader_get_filename(archiveLock.get(), m_Index, result.data(), size + 1);
+		return result;
+	}
+
+	void* ZipReaderEntry::Extract(std::size_t* size) const {
+		std::size_t sizeInternal;
+		void* const result = mz_zip_reader_extract_to_heap(m_Archive.lock().get(), m_Index, &sizeInternal, 0);
+
+		if (!result) throw std::runtime_error("failed to extract the zip entry");
+		if (size) *size = sizeInternal;
 
 		return result;
 	}
 
-	std::size_t talkheui::zip_reader_entry::index() const noexcept
-	{
-		return index_;
+	std::size_t ZipReaderEntry::Index() const noexcept {
+		return m_Index;
 	}
 }
 
-namespace talkheui
-{
-	zip_reader::zip_reader(const std::string& path)
-	{
-		open(path);
+namespace th {
+	ZipReader::ZipReader(const std::string& path) {
+		Open(path);
 	}
-	zip_reader::zip_reader(zip_reader&& reader) noexcept
-		: archive_(std::move(reader.archive_))
-	{}
-	zip_reader::~zip_reader()
-	{
-		close();
+	ZipReader::ZipReader(ZipReader&& zip) noexcept
+		: m_Archive(std::move(zip.m_Archive)) {
+	}
+	ZipReader::~ZipReader() {
+		Close();
 	}
 
-	zip_reader& zip_reader::operator=(zip_reader&& reader) noexcept
-	{
-		close();
+	ZipReader& ZipReader::operator=(ZipReader&& zip) noexcept {
+		Close();
 
-		archive_ = std::move(reader.archive_);
+		m_Archive = std::move(zip.m_Archive);
 		return *this;
 	}
-	zip_reader_entry zip_reader::operator[](std::size_t index) const noexcept
-	{
-		assert(index < size());
-		return zip_reader_entry(archive_, index);
+	ZipReaderEntry ZipReader::operator[](std::size_t index) const noexcept {
+		assert(index < Count());
+		return { m_Archive, index };
 	}
 
-	void zip_reader::open(const std::string& path)
-	{
-		close();
+	void ZipReader::Open(const std::string& path) {
+		Close();
 
-		archive_ = std::make_shared<mz_zip_archive>();
-		if (!mz_zip_reader_init_file(archive_.get(), path.c_str(), 0)) throw std::runtime_error("failed to open the zip file");
+		m_Archive = std::make_shared<mz_zip_archive>();
+		if (!mz_zip_reader_init_file(m_Archive.get(), path.c_str(), 0)) throw std::runtime_error("failed to open the zip file");
 	}
-	void zip_reader::close() noexcept
-	{
-		if (!archive_) return;
+	void ZipReader::Close() noexcept {
+		if (!m_Archive) return;
 
-		mz_zip_reader_end(archive_.get());
-		archive_.reset();
+		mz_zip_reader_end(m_Archive.get());
+		m_Archive.reset();
+	}
+	bool ZipReader::IsOpen() const noexcept {
+		return m_Archive != nullptr;
+	}
+	std::size_t ZipReader::Count() const noexcept {
+		return static_cast<std::size_t>(m_Archive->m_total_files);
 	}
 
-	zip_reader_entry zip_reader::find(const std::string& name) const
+	ZipReaderEntry ZipReader::Find(const std::string& name) const
 	{
-		for (std::size_t i = 0; i < size(); ++i)
-		{
-			const zip_reader_entry entry = (*this)[i];
-			if (entry.filename() == name) return entry;
+		for (std::size_t i = 0; i < Count(); ++i) {
+			const ZipReaderEntry entry = (*this)[i];
+			if (entry.Filename() == name) return entry;
 		}
-
 		throw std::runtime_error("failed to find the zip entry");
-	}
-	zip_reader_entry zip_reader::at(std::size_t index) const
-	{
-		if (index >= size()) throw std::out_of_range("the argument 'index' is out of range");
-		return zip_reader_entry(archive_, index);
-	}
-	std::size_t zip_reader::size() const noexcept
-	{
-		return static_cast<std::size_t>(archive_->m_total_files);
-	}
-
-	bool zip_reader::is_open() const noexcept
-	{
-		return archive_ != nullptr;
 	}
 }

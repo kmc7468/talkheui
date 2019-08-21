@@ -1,53 +1,45 @@
-#include <talkheui/lua.hpp>
+#include <th/lua.hpp>
 
 #include <stdexcept>
 
-namespace talkheui
-{
-	lua_engine::lua_engine()
-		: state_(luaL_newstate())
-	{
-		if (!state_) throw std::runtime_error("failed to create a new lua state");
-
-		luaL_openlibs(state_);
+namespace th {
+	Lua::Lua()
+		: m_State(luaL_newstate()) {
+		if (!m_State) throw std::runtime_error("failed to start a lua interpreter");
+		luaL_openlibs(m_State);
 	}
-	lua_engine::lua_engine(lua_engine&& engine) noexcept
-		: state_(engine.state_)
-	{
-		engine.state_ = nullptr;
+	Lua::Lua(Lua&& lua) noexcept
+		: m_State(lua.m_State) {
+		lua.m_State = nullptr;
 	}
-	lua_engine::~lua_engine()
-	{
-		if (state_) lua_close(state_);
+	Lua::~Lua() {
+		if (m_State) {
+			lua_close(m_State);
+		}
 	}
 
-	lua_engine& lua_engine::operator=(lua_engine&& engine) noexcept
-	{
-		state_ = engine.state_;
-		engine.state_ = nullptr;
+	Lua& Lua::operator=(Lua&& lua) noexcept {
+		m_State = lua.m_State;
+		lua.m_State = nullptr;
 		return *this;
 	}
 
-	void lua_engine::load_script(const std::string_view& script)
-	{
-		luaL_loadbuffer(state_, script.data(), script.size(), script.data());
-		lua_pcall(state_, 0, 0, 0);
+	void Lua::LoadScript(const std::string_view& script) {
+		luaL_loadbuffer(m_State, script.data(), script.size(), script.data());
+		lua_pcall(m_State, 0, 0, 0);
 	}
-	void lua_engine::getglobal(const std::string& name)
-	{
-		lua_getglobal(state_, name.c_str());
+	
+	void Lua::GetGlobal(const std::string& name) {
+		lua_getglobal(m_State, name.c_str());
 	}
-	void lua_engine::push(long long number)
-	{
-		lua_pushinteger(state_, number);
+	void Lua::Push(long long number) {
+		lua_pushinteger(m_State, number);
 	}
-	long long lua_engine::pop_integer()
-	{
-		const long long result = lua_tointeger(state_, -1);
-		return lua_pop(state_, 1), result;
+	long long Lua::PopInteger() {
+		const long long result = lua_tointeger(m_State, -1);
+		return lua_pop(m_State, 1), result;
 	}
-	void lua_engine::call(int param_size, int ret_size)
-	{
-		lua_call(state_, param_size, ret_size);
+	void Lua::Call(int paramSize, int retSize) {
+		lua_call(m_State, paramSize, retSize);
 	}
 }

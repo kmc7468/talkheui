@@ -1,29 +1,28 @@
 #pragma once
 
-#include <lua/lua.hpp>
-
 #include <string_view>
 
-namespace talkheui
-{
-	class lua_engine final
-	{
-	public:
-		lua_engine();
-		lua_engine(lua_engine&& engine) noexcept;
-		~lua_engine();
+#include <lua/lua.hpp>
 
-	public:
-		lua_engine& operator=(lua_engine&& engine) noexcept;
-
-	public:
-		void load_script(const std::string_view& script);
-		void getglobal(const std::string& name);
-		void push(long long number);
-		long long pop_integer();
-		void call(int param_size, int ret_size);
-
+namespace th {
+	class Lua final {
 	private:
-		lua_State* state_ = nullptr;
+		lua_State* m_State = nullptr;
+
+	public:
+		Lua();
+		Lua(Lua&& lua) noexcept;
+		~Lua();
+
+	public:
+		Lua& operator=(Lua&& lua) noexcept;
+
+	public:
+		void LoadScript(const std::string_view& script);
+		
+		void GetGlobal(const std::string& name);
+		void Push(long long number);
+		long long PopInteger();
+		void Call(int paramSize, int retSize);
 	};
 }

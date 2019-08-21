@@ -1,64 +1,57 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
-#include <miniz/miniz.h>
 #include <string>
 
-namespace talkheui
-{
-	class zip_reader_entry final
-	{
-		friend class zip_reader;
+#include <miniz/miniz.h>
 
-	public:
-		zip_reader_entry(const zip_reader_entry& entry) noexcept;
-		~zip_reader_entry() = default;
-
+namespace th {
+	class ZipReaderEntry final {
 	private:
-		zip_reader_entry(std::weak_ptr<mz_zip_archive> archive, std::size_t index) noexcept;
+		std::weak_ptr<mz_zip_archive> m_Archive;
+		std::size_t m_Index;
 
 	public:
-		zip_reader_entry& operator=(const zip_reader_entry& entry) noexcept;
+		ZipReaderEntry(std::weak_ptr<mz_zip_archive> archive, std::size_t index) noexcept;
+		ZipReaderEntry(const ZipReaderEntry& entry) noexcept;
+		~ZipReaderEntry() = default;
 
 	public:
-		bool is_directory() const noexcept;
-		bool is_file() const noexcept;
-		bool is_encrypted() const noexcept;
-		void* extract(std::size_t* size) const;
-		std::string filename() const;
+		ZipReaderEntry& operator=(const ZipReaderEntry& entry) noexcept;
 
 	public:
-		std::size_t index() const noexcept;
+		bool IsDirectory() const noexcept;
+		bool IsFile() const noexcept;
+		bool IsEncrypted() const noexcept;
+		std::string Filename() const;
 
-	private:
-		std::weak_ptr<mz_zip_archive> archive_;
-		std::size_t index_;
+		void* Extract(std::size_t* size) const;
+
+	public:
+		std::size_t Index() const noexcept;
 	};
 
-	class zip_reader final
-	{
-	public:
-		zip_reader() = default;
-		zip_reader(const std::string& path);
-		zip_reader(zip_reader&& reader) noexcept;
-		~zip_reader();
-
-	public:
-		zip_reader& operator=(zip_reader&& reader) noexcept;
-		zip_reader_entry operator[](std::size_t index) const noexcept;
-
-	public:
-		void open(const std::string& path);
-		void close() noexcept;
-		
-		zip_reader_entry find(const std::string& name) const;
-		zip_reader_entry at(std::size_t index) const;
-		std::size_t size() const noexcept;
-
-	public:
-		bool is_open() const noexcept;
-
+	class ZipReader final {
 	private:
-		std::shared_ptr<mz_zip_archive> archive_;
+		std::shared_ptr<mz_zip_archive> m_Archive;
+
+	public:
+		ZipReader() = default;
+		ZipReader(const std::string& path);
+		ZipReader(ZipReader&& zip) noexcept;
+		~ZipReader();
+
+	public:
+		ZipReader& operator=(ZipReader&& zip) noexcept;
+		ZipReaderEntry operator[](std::size_t index) const noexcept;
+
+	public:
+		void Open(const std::string& path);
+		void Close() noexcept;
+		bool IsOpen() const noexcept;
+		std::size_t Count() const noexcept;
+
+		ZipReaderEntry Find(const std::string& filename) const;
 	};
 }

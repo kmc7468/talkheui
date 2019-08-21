@@ -1,72 +1,93 @@
 #pragma once
 
-#include <talkheui/zip.hpp>
+#include <th/Zip.hpp>
 
+#include <algorithm>
+#include <cctype>
 #include <map>
-#include <nlohmann/json.hpp>
 #include <string>
 
-namespace talkheui
-{
-	struct extension_info final
-	{
-		std::string name;
-		std::string developer;
-		std::string description;
-		std::string target;
+#include <nlohmann/json.hpp>
+
+namespace th {
+	template<typename E>
+	E ToEnum(std::string string) noexcept;
+}
+
+namespace th {
+	enum class ExtensionTarget {
+		None,
+
+		Aheui,
 	};
 
-	class extension_resources final
-	{
-	public:
-		extension_resources() = default;
-		extension_resources(extension_resources&& resources) noexcept;
-		~extension_resources() = default;
+	template<>
+	ExtensionTarget ToEnum<ExtensionTarget>(std::string string) noexcept {
+		std::transform(string.begin(), string.end(), string.begin(), std::tolower);
+		if (string == "aheui") {
+			return ExtensionTarget::Aheui;
+		} else ExtensionTarget::None;
+	}
 
-	public:
-		extension_resources& operator=(extension_resources&& resources) noexcept;
-		zip_reader_entry operator[](const std::string& name) const;
+	struct ExtensionInfo final {
+		std::string Name;
+		ExtensionTarget Target;
 
-	public:
-		std::map<std::string, zip_reader_entry>::const_iterator find(const std::string& name) const;
-		void add(std::string name, zip_reader_entry resource);
-		std::map<std::string, zip_reader_entry> list() const;
+		std::string Developer;
+		std::string Description;
+	};
 
+	class ExtensionResources final {
 	private:
-		std::map<std::string, zip_reader_entry> resources_;
+		std::map<std::string, ZipReaderEntry> m_Resources;
+
+	public:
+		ExtensionResources() = default;
+		ExtensionResources(ExtensionResources&& resources) noexcept;
+		~ExtensionResources() = default;
+
+	public:
+		ExtensionResources& operator=(ExtensionResources&& resources) noexcept;
+		ZipReaderEntry operator[](const std::string& name) const;
+
+	public:
+		void Add(std::string name, ZipReaderEntry resource);
+		std::map<std::string, ZipReaderEntry> Items() const;
 	};
 
-	class extension
-	{
-	public:
-		virtual ~extension() = default;
-
-	protected:
-		extension() = default;
-		extension(extension_info info);
-		extension(extension&& extension) noexcept;
-
-	protected:
-		extension& operator=(extension&& extension) noexcept;
-
-	public:
-		void open(const std::string& path);
-
-	protected:
-		virtual void open_priv(const zip_reader& extension, const nlohmann::json& extension_info) = 0;
-
-	public:
-		std::string name() const;
-		std::string developer() const;
-		std::string description() const;
-		std::string target() const;
-		const extension_resources& resources() const;
-
+	class Extension {
 	private:
-		extension_info info_;
-		extension_resources resources_;
-		zip_reader zip_;
+		ExtensionInfo m_Info;
+		ExtensionResources m_Resources;
+		ZipReader m_Zip;
+
+	public:
+		virtual ~Extension() = default;
+
+	protected:
+		Extension() = default;
+		Extension(ExtensionInfo info) noexcept;
+		Extension(Extension&& extension) noexcept;
+
+	protected:
+		Extension& operator=(Extension&& extension) noexcept;
+
+	public:
+		void Open(const std::string& path);
+		void Close() noexcept;
+
+	protected:
+		virtual void vOpen(const ZipReader& zip, const nlohmann::json& info) = 0;
+
+	public:
+		std::string Name() const;
+		ExtensionTarget Target() const noexcept;
+
+		std::string Developer() const;
+		std::string Description() const;
+
+		const ExtensionResources& Resources() const;
 	};
 
-	extension* open_extension(const std::string& path);
+	Extension* OpenExtension(const std::string& path);
 }

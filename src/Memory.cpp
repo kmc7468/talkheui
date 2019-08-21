@@ -1,32 +1,28 @@
-#include <talkheui/memory.hpp>
+#include <th/Memory.hpp>
 
 #include <utility>
 
-namespace talkheui
-{
-	memory::memory(std::string name) noexcept
-		: name_(std::move(name))
-	{}
-	memory::memory(const memory& memory)
-		: name_(memory.name_)
-	{}
-	memory::memory(memory&& memory) noexcept
-		: name_(std::move(memory.name_))
-	{}
+namespace th {
+	Memory::Memory(std::string name) noexcept
+		: m_Name(std::move(name)) {
+	}
+	Memory::Memory(const Memory& memory)
+		: m_Name(memory.m_Name) {
+	}
+	Memory::Memory(Memory&& memory) noexcept
+		: m_Name(std::move(memory.m_Name)) {
+	}
 
-	memory& memory::operator=(const memory& memory)
-	{
-		name_ = memory.name_;
+	Memory& Memory::operator=(const Memory& memory) {
+		m_Name = memory.m_Name;
 		return *this;
 	}
-	memory& memory::operator=(memory&& memory) noexcept
-	{
-		name_ = std::move(memory.name_);
+	Memory& Memory::operator=(Memory&& memory) noexcept {
+		m_Name = std::move(memory.m_Name);
 		return *this;
 	}
 
-	std::string memory::name() const
-	{
-		return name_;
+	std::string Memory::Name() const {
+		return m_Name;
 	}
 }
