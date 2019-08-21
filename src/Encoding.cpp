@@ -34,14 +34,14 @@ namespace {
 			if (std::equal(bomBuffer, bomBuffer + 4, UTF32Bom)) return Encoding::UTF32;
 			else if (std::equal(bomBuffer, bomBuffer + 4, UTF32BEBom)) return Encoding::UTF32BE;
 		}
-		if (readCount == 3) {
+		if (readCount >= 3) {
 			if (std::equal(bomBuffer, bomBuffer + 3, UTF8Bom)) {
 				stream.clear();
 				stream.seekg(pos + static_cast<std::streamoff>(3), std::ios::beg);
 				return Encoding::UTF8;
 			}
 		}
-		if (readCount == 2) {
+		if (readCount >= 2) {
 			if (std::equal(bomBuffer, bomBuffer + 2, UTF16Bom)) {
 				stream.clear();
 				stream.seekg(pos + static_cast<std::streamoff>(2), std::ios::beg);
