@@ -2,15 +2,12 @@
 
 #include <th/Encoding.hpp>
 #include <th/Hangul.hpp>
+#include <th/IOStream.hpp>
 #include <th/aheui/Extension.hpp>
 #include <th/aheui/Storage.hpp>
 
 #include <cstdio>
 #include <unordered_map>
-
-#ifdef _WIN32
-#	include <Windows.h>
-#endif
 
 #include <u5e/basic_grapheme.hpp>
 
@@ -197,24 +194,9 @@ namespace th::aheui {
 
 			long long v = storage->Pop();
 			if (commandJaso.Jongsung == U'ㅇ') {
-				std::printf("%lld", v);
+				WriteStdout(v);
 			} else if (commandJaso.Jongsung == U'ㅎ') {
-#ifdef WIN32
-				DWORD written;
-				if (v < 0x10000) {
-					wchar_t vwc = static_cast<wchar_t>(v);
-					WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), &vwc, 1, &written, nullptr);
-				} else {
-					wchar_t units[2];
-					v -= 0x10000;
-					units[0] = static_cast<wchar_t>(v / 0x400 + 0xD800);
-					units[1] = static_cast<wchar_t>(v % 0x400 + 0xDC00);
-					WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), units, 2, &written, nullptr);
-				}
-#else
-				const std::string vStr = UTF32To8(std::u32string_view(reinterpret_cast<const char32_t*>(&v), 1));
-				std::printf("%s", reinterpret_cast<const char*>(vStr.c_str()));
-#endif
+				WriteStdout(static_cast<char32_t>(v));
 			}
 			break;
 		}
@@ -222,38 +204,9 @@ namespace th::aheui {
 		case U'ㅂ': {
 			long long v;
 			if (commandJaso.Jongsung == U'ㅇ') {
-				std::scanf("%lld", &v);
+				v = ReadIntegerStdin();
 			} else if (commandJaso.Jongsung == U'ㅎ') {
-#ifdef _WIN32
-				wchar_t units[2];
-				DWORD read;
-				ReadConsoleW(GetStdHandle(STD_INPUT_HANDLE), units, 1, &read, nullptr);
-
-				if ((units[0] & 0xD800) == 0xD800) {
-					ReadConsoleW(GetStdHandle(STD_INPUT_HANDLE), units + 1, 1, &read, nullptr);
-					v = (units[0] - 0xD800) * 0x400 + (units[1] - 0xDC00);
-				} else {
-					v = units[0];
-				}
-#else
-				unsigned char fb;
-				std::scanf("%c", reinterpret_cast<char*>(&fb));
-				if (fb < 0x80) {
-					v = fb;
-				} else if ((fb & 0xF0) == 0xF0) {
-					unsigned char sb, tb, frb;
-					std::scanf("%c%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb), reinterpret_cast<char*>(&frb));
-					v = ((fb & 0x07) << 18) + ((sb & 0x3F) << 12) + ((tb & 0x3F) << 6) + (frb & 0x3F);
-				} else if ((fb & 0xE0) == 0xE0) {
-					unsigned char sb, tb;
-					std::scanf("%c%c", reinterpret_cast<char*>(&sb), reinterpret_cast<char*>(&tb));
-					v = ((fb & 0x0F) << 12) + ((sb & 0x3F) << 6) + (tb & 0x3F);
-				} else {
-					unsigned char sb;
-					std::scanf("%c", reinterpret_cast<char*>(&sb));
-					v = ((fb & 0x1F) << 6) + (sb & 0x3F);
-				}
-#endif
+				v = ReadCharacterStdin();
 			} else {
 				v = constants[commandJaso.Jongsung];
 			}

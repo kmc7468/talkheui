@@ -1,16 +1,9 @@
 #include <th/Encoding.hpp>
 #include <th/Aheui/Interpreter.hpp>
 
+#include <cstdio>
 #include <iostream>
 #include <string>
-
-#ifdef _WIN32
-#	include <clocale>
-
-#	include <fcntl.h>
-#	include <io.h>
-#	include <Windows.h>
-#endif
 
 int main(int argc, char* argv[]) {
 	if (argc <= 1) {
@@ -20,13 +13,16 @@ int main(int argc, char* argv[]) {
 		std::cout << "There are too many arguments\n";
 		return 1;
 	}
-	
-#ifdef _WIN32
-	std::setlocale(LC_ALL, "");
-	SetConsoleOutputCP(CP_UTF8);
-	SetConsoleCP(CP_UTF8);
-#endif
 
+#ifdef _WIN32
+	std::fpos_t pos;
+	std::fgetpos(stdout, &pos);
+	if (pos != -1) {
+		const std::uint16_t bom = 0xFEFF;
+		std::fwrite(&bom, sizeof(bom), 1, stdout);
+	}
+#endif
+	
 	th::aheui::Interpreter i;
 	std::string sc;
 
