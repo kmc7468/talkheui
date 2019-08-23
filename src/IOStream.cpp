@@ -6,9 +6,6 @@
 #include <cwctype>
 #include <string>
 
-//test
-#include <iostream>
-
 #ifdef _WIN32
 #	include <fcntl.h>
 #	include <io.h>
@@ -71,7 +68,7 @@ namespace th {
 			}
 		} while (!std::feof(stdin));
 
-		return std::stoll(input);
+		return input.empty() ? 0 : std::stoll(input);
 #else
 		long long input;
 		std::scanf("%lld", &input);
@@ -79,14 +76,16 @@ namespace th {
 		return input;
 #endif
 	}
-	char32_t ReadCharacterStdin() noexcept {
+	long long ReadCharacterStdin() noexcept {
 #ifdef _WIN32
 		const TextModeRAII raii(stdin);
 
 		wchar_t units[2];
 		units[0] = static_cast<wchar_t>(std::fgetwc(stdin));
 		if (units[0] == 0xFEFF) {
-			units[0] = static_cast<wchar_t>(std::fgetwc(stdin));
+			const std::wint_t temp = std::fgetwc(stdin);
+			if (temp == WEOF) return -1;
+			units[0] = static_cast<wchar_t>(temp);
 		}
 
 		if ((units[0] & 0xD800) == 0xD800) {

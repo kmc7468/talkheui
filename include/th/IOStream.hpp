@@ -5,5 +5,5 @@ namespace th {
 	void WriteStdout(char32_t character) noexcept;
 	
 	long long ReadIntegerStdin() noexcept;
-	char32_t ReadCharacterStdin() noexcept;
+	long long ReadCharacterStdin() noexcept;
 }
