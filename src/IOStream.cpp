@@ -54,64 +54,44 @@ namespace th {
 #ifdef _WIN32
 		const TextModeRAII raii(stdin);
 		
-		std::wstring input;
-		do {
-			const wchar_t read = static_cast<wchar_t>(std::fgetwc(stdin));
-			if (std::iswdigit(read) ||
-			   (input.empty() && (read == L'+' || read == L'-'))) {
-				input += read;
-			} else if (input.empty() && (std::iswspace(read) || read == 0xFEFF)) {
-				continue;
-			} else {
-				std::ungetwc(read, stdin);
-				break;
-			}
-		} while (!std::feof(stdin));
-
-		return input.empty() ? 0 : std::stoll(input);
+		long long input;
+		if (std::wscanf(L"%lld", &input) == EOF) return -1;
+		else return input;
 #else
 		long long input;
-		std::scanf("%lld", &input);
-
-		return input;
+		if (std::scanf("%lld", &input) == EOF) return -1;
+		else return input;
 #endif
 	}
 	long long ReadCharacterStdin() noexcept {
 #ifdef _WIN32
 		const TextModeRAII raii(stdin);
 
-		wchar_t units[2];
-		units[0] = static_cast<wchar_t>(std::fgetwc(stdin));
-		if (units[0] == 0xFEFF) {
-			const std::wint_t temp = std::fgetwc(stdin);
-			if (temp == WEOF) return -1;
-			units[0] = static_cast<wchar_t>(temp);
-		}
-
-		if ((units[0] & 0xD800) == 0xD800) {
-			units[1] = static_cast<wchar_t>(std::fgetwc(stdin));
-			return (units[0] - 0xD800) * 0x400 + (units[1] - 0xDC00) + 0x10000;
-		} else {
-			return units[0];
-		}
+		std::wint_t units[2];
+		if ((units[0] = std::fgetwc(stdin)) == WEOF ||
+			(units[0] == 0xFEFF && (units[0] = std::fgetwc(stdin)) == WEOF)) return -1;
+		else if ((units[0] & 0xD800) == 0xD800) {
+			units[1] = std::fgetwc(stdin);
+			if (units[1] == WEOF) return -1;
+			else return (units[0] - 0xD800) * 0x400 + (units[1] - 0xDC00) + 0x10000;
+		} else return units[0];
 #else
-		unsigned char fb = static_cast<unsigned char>(std::fgetc(stdin));
-		if (fb < 0x80) {
-			return fb;
-		} else if ((fb & 0xF0) == 0xF0) {
-			unsigned char sb, tb, frb;
-			sb = static_cast<unsigned char>(std::fgetc(stdin));
-			tb = static_cast<unsigned char>(std::fgetc(stdin));
-			frb = static_cast<unsigned char>(std::fgetc(stdin));
-			return ((fb & 0x07) << 18) + ((sb & 0x3F) << 12) + ((tb & 0x3F) << 6) + (frb & 0x3F);
-		} else if ((fb & 0xE0) == 0xE0) {
-			unsigned char sb, tb;
-			sb = static_cast<unsigned char>(std::fgetc(stdin));
-			tb = static_cast<unsigned char>(std::fgetc(stdin));
-			return ((fb & 0x0F) << 12) + ((sb & 0x3F) << 6) + (tb & 0x3F);
+		int units[4];
+		if ((units[0] = std::fgetc(stdin)) == EOF) return -1;
+		else if (units[0] < 0x80) return units[0];
+		else if ((units[0] & 0xF0) == 0xF0) {
+			for (int i = 1; i < 4; ++i) {
+				if ((units[i] = std::fgetc(stdin)) == EOF) return -1;
+			}
+			return ((units[0] & 0x07) << 18) + ((units[1] & 0x3F) << 12) + ((units[2] & 0x3F) << 6) + (units[3] & 0x3F);
+		} else if ((units[0] & 0xE0) == 0xE0) {
+			for (int i = 1; i < 3; ++i) {
+				if ((units[i] = std::fgetc(stdin)) == EOF) return -1;
+			}
+			return ((units[0] & 0x0F) << 12) + ((units[1] & 0x3F) << 6) + (units[2] & 0x3F);
 		} else {
-			unsigned char sb = static_cast<unsigned char>(std::fgetc(stdin));
-			return ((fb & 0x1F) << 6) + (sb & 0x3F);
+			if ((units[1] = std::fgetc(stdin)) == EOF) return -1;
+			else return ((units[0] & 0x1F) << 6) + (units[1] & 0x3F);
 		}
 #endif
 	}

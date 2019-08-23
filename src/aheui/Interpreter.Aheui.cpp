@@ -204,9 +204,9 @@ namespace th::aheui {
 		case U'ㅂ': {
 			long long v;
 			if (commandJaso.Jongsung == U'ㅇ') {
-				v = std::feof(stdin) ? -1 : ReadIntegerStdin();
+				v = ReadIntegerStdin();
 			} else if (commandJaso.Jongsung == U'ㅎ') {
-				v = std::feof(stdin) ? -1 : ReadCharacterStdin();
+				v = ReadCharacterStdin();
 			} else {
 				v = constants[commandJaso.Jongsung];
 			}
