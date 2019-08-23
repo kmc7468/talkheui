@@ -5,6 +5,10 @@
 #include <iostream>
 #include <string>
 
+#ifdef _WIN32
+#	include <io.h>
+#endif
+
 int main(int argc, char* argv[]) {
 	if (argc <= 1) {
 		std::cout << "Usage: ./talkheui <Aheui code path> [Extension path]\n";
@@ -15,11 +19,9 @@ int main(int argc, char* argv[]) {
 	}
 
 #ifdef _WIN32
-	std::fpos_t pos;
-	std::fgetpos(stdout, &pos);
-	if (pos != -1) {
-		const std::uint16_t bom = 0xFEFF;
-		std::fwrite(&bom, sizeof(bom), 1, stdout);
+	if (!_isatty(_fileno(stdout))) {
+		const std::uint16_t temp = 0xFEFF;
+		std::fwrite(&temp, sizeof(temp), 1, stdout);
 	}
 #endif
 	
