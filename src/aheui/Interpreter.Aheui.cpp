@@ -255,14 +255,11 @@ namespace th::aheui {
 			break;
 		}
 
-		case U'ㅊ': {
-			if (storage->Count() < 1) {
-				ReverseCursor();
-			} else if (!storage->Pop()) {
+		case U'ㅊ':
+			if (storage->Count() < 1 || !storage->Pop()) {
 				ReverseCursor();
 			}
 			break;
-		}
 		}
 	}
 
