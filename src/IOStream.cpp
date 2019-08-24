@@ -94,6 +94,7 @@ namespace th {
 		while (true) {
 			const std::wint_t c = std::fgetwc(stdin);
 			if (c == WEOF) break;
+			else if (isFirst && std::iswspace(c)) continue;
 			else if (isFirst && (c == L'+') || (c == L'-')) {
 				isFirst = false;
 				temp += static_cast<char>(c);
@@ -109,6 +110,7 @@ namespace th {
 		while (true) {
 			const int c = std::fgetc(stdin);
 			if (c == EOF) break;
+			else if (isFirst && std::isspace(c)) continue;
 			else if (isFirst && (c == '+') || (c == '-')) {
 				isFirst = false;
 				temp += static_cast<char>(c);
@@ -122,7 +124,7 @@ namespace th {
 		}
 #endif
 
-		return boost::multiprecision::int128_t(temp);
+		return temp.empty() ? -1 : boost::multiprecision::int128_t(temp);
 	}
 #endif
 	long long ReadCharacterStdin() noexcept {
