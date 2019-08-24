@@ -61,7 +61,9 @@ namespace {
 namespace th::aheui {
 	LuaExtension::LuaExtension()
 		: Extension(ExtensionType::Lua) {
+#ifdef TH_USE_MULTIPRECISION
 		m_Lua.AddInt128Class();
+#endif
 	}
 	LuaExtension::LuaExtension(const std::string& path)
 		: LuaExtension() {

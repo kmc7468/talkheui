@@ -5,6 +5,8 @@
 #include <limits>
 #include <stdexcept>
 
+#include <boost/lexical_cast.hpp>
+
 namespace th {
 	Lua::Lua()
 		: m_State(luaL_newstate()) {
@@ -90,16 +92,35 @@ namespace th {
 		lua_settable(m_State, index);
 	}
 
+#ifdef TH_USE_MULTIPRECISION
 	void Lua::AddInt128Class() {
 		static const luaL_Reg int128Methods[] = {
 			{ "new", LuaInt128New },
 			{ "print", LuaInt128Print },
 			{ "println", LuaInt128PrintLn },
 			{ "read", LuaInt128Read },
+			{ "get_low_qword", LuaInt128GetLowQWord },
+			{ "get_high_qword", LuaInt128GetHighQWord },
 			{ nullptr, nullptr },
 		};
 		static const luaL_Reg int128MetaTable[] = {
 			{ "__add", LuaInt128Add },
+			{ "__sub", LuaInt128Sub },
+			{ "__mul", LuaInt128Mul },
+			{ "__pow", LuaInt128Pow },
+			{ "__div", LuaInt128Div },
+			{ "__idiv", LuaInt128Div },
+			{ "__mod", LuaInt128Mod },
+			{ "__unm", LuaInt128Neg },
+			{ "__eq", LuaInt128Equal },
+			{ "__lt", LuaInt128Less },
+			{ "__le", LuaInt128LessEqual },
+			{ "__band", LuaInt128BitAnd },
+			{ "__bor", LuaInt128BitOr },
+			{ "__bxor", LuaInt128BitXor },
+			{ "__shl", LuaInt128BitLeftShift },
+			{ "__shr", LuaInt128BitRightShift },
+			{ "__bnot", LuaInt128BitNot },
 			{ nullptr, nullptr },
 		};
 
@@ -119,6 +140,7 @@ namespace th {
 
 		lua_setglobal(m_State, "Int128");
 	}
+#endif
 	int Lua::LuaIsInt128Available(lua_State* state) {
 #ifdef TH_USE_MULTIPRECISION
 		lua_pushboolean(state, true);
@@ -127,6 +149,7 @@ namespace th {
 #endif
 		return 1;
 	}
+
 #ifdef TH_USE_MULTIPRECISION
 	boost::multiprecision::int128_t* Lua::LuaPushInt128(lua_State* state) {
 		boost::multiprecision::int128_t* const result =
@@ -190,10 +213,125 @@ namespace th {
 		}
 		return 1;
 	}
+	int Lua::LuaInt128GetLowQWord(lua_State* state) {
+		const int argNum = lua_gettop(state);
+		if (argNum == 0) {
+			luaL_error(state, "Int128.new needs argument");
+		} else if (argNum == 1) {
+			lua_pushinteger(state, static_cast<long long>(*static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128")) & 0xFFFFFFFFFFFFFFFF));
+		} else {
+			luaL_error(state, "Int128.new too many arguments");
+		}
+		return 1;
+	}
+	int Lua::LuaInt128GetHighQWord(lua_State* state) {
+		const int argNum = lua_gettop(state);
+		if (argNum == 0) {
+			luaL_error(state, "Int128.new needs argument");
+		} else if (argNum == 1) {
+			lua_pushinteger(state, static_cast<long long>(*static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128")) >> 64 & 0xFFFFFFFFFFFFFFFF));
+		} else {
+			luaL_error(state, "Int128.new too many arguments");
+		}
+		return 1;
+	}
 	int Lua::LuaInt128Add(lua_State* state) {
 		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
 		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
 		*LuaPushInt128(state) = *left + *right;
+		return 1;
+	}
+	int Lua::LuaInt128Sub(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left - *right;
+		return 1;
+	}
+	int Lua::LuaInt128Mul(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left * *right;
+		return 1;
+	}
+	int Lua::LuaInt128Pow(lua_State* state) {
+		const long long right = luaL_checkinteger(state, -1);
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = boost::multiprecision::pow(*left, static_cast<unsigned int>(right));
+		return 1;
+	}
+	int Lua::LuaInt128Div(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left / *right;
+		return 1;
+	}
+	int Lua::LuaInt128Mod(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left % *right;
+		return 1;
+	}
+	int Lua::LuaInt128Neg(lua_State* state) {
+		boost::multiprecision::int128_t* const value = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		*LuaPushInt128(state) = -*value;
+		return 1;
+	}
+	int Lua::LuaInt128Equal(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		lua_pushboolean(state, *left == *right);
+		return 1;
+	}
+	int Lua::LuaInt128Less(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		lua_pushboolean(state, *left < *right);
+		return 1;
+	}
+	int Lua::LuaInt128LessEqual(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		lua_pushboolean(state, *left <= *right);
+		return 1;
+	}
+	int Lua::LuaInt128BitAnd(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left & *right;
+		return 1;
+	}
+	int Lua::LuaInt128BitOr(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left | *right;
+		return 1;
+	}
+	int Lua::LuaInt128BitXor(lua_State* state) {
+		boost::multiprecision::int128_t* const right = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left ^ *right;
+		return 1;
+	}
+	int Lua::LuaInt128BitLeftShift(lua_State* state) {
+		const long long right = luaL_checkinteger(state, -1);
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left << right;
+		return 1;
+	}
+	int Lua::LuaInt128BitRightShift(lua_State* state) {
+		const long long right = luaL_checkinteger(state, -1);
+		boost::multiprecision::int128_t* const left = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
+		*LuaPushInt128(state) = *left >> right;
+		return 1;
+	}
+	int Lua::LuaInt128BitNot(lua_State* state) {
+		boost::multiprecision::int128_t* const value = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		*LuaPushInt128(state) = ~*value;
+		return 1;
+	}
+	int Lua::LuaInt128ToString(lua_State* state) {
+		boost::multiprecision::int128_t* const value = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
+		lua_pushstring(state, boost::lexical_cast<std::string>(*value).c_str());
 		return 1;
 	}
 #endif

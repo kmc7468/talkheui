@@ -54,15 +54,16 @@ namespace th {
 		static int LuaInt128Print(lua_State* state);
 		static int LuaInt128PrintLn(lua_State* state);
 		static int LuaInt128Read(lua_State* state);
+		static int LuaInt128GetLowQWord(lua_State* state);
+		static int LuaInt128GetHighQWord(lua_State* state);
 		static int LuaInt128Add(lua_State* state);
 		static int LuaInt128Sub(lua_State* state);
 		static int LuaInt128Mul(lua_State* state);
+		static int LuaInt128Pow(lua_State* state);
 		static int LuaInt128Div(lua_State* state);
 		static int LuaInt128Mod(lua_State* state);
+		static int LuaInt128Neg(lua_State* state);
 		static int LuaInt128Equal(lua_State* state);
-		static int LuaInt128NotEqual(lua_State* state);
-		static int LuaInt128Greater(lua_State* state);
-		static int LuaInt128GreaterEqual(lua_State* state);
 		static int LuaInt128Less(lua_State* state);
 		static int LuaInt128LessEqual(lua_State* state);
 		static int LuaInt128BitAnd(lua_State* state);
@@ -70,6 +71,8 @@ namespace th {
 		static int LuaInt128BitXor(lua_State* state);
 		static int LuaInt128BitLeftShift(lua_State* state);
 		static int LuaInt128BitRightShift(lua_State* state);
+		static int LuaInt128BitNot(lua_State* state);
+		static int LuaInt128ToString(lua_State* state);
 #endif
 	};
 }
