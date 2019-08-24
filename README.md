@@ -68,7 +68,10 @@ $ make
 *1*.에서 작성한 스크립트와 *2*.에서 작성한 Extension.json 파일을 하나의 파일로 압축합니다.
 
 ## 외부 라이브러리
-- [Boost.Multiprecision](https://github.com/boostorg/multiprecision) 1.71.0
+다음의 외부 라이브러리들은 **별도 설치가 필요**합니다.
+- [Boost C++ Libraries](https://www.boost.org)
+
+다음의 외부 라이브러리들은 별도 설치가 필요하지 않습니다.
 - [JSON for Modern C++](https://github.com/nlohmann/json) version 3.6.1
 - [Lua](https://www.lua.org) 5.3.5
 - [LuaSocket](https://github.com/diegonehab/luasocket) 3.0
