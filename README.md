@@ -33,7 +33,7 @@ $ make
 [이곳](https://github.com/kmc7468/talkheui/tree/master/examples)에서 최신 버전의 예제를 확인하실 수 있습니다. 또는 examples 디렉터리에서 현재 버전의 예제를 확인하실 수도 있습니다.
 
 ## 확장 개발 방법
-[이곳](https://github.com/kmc7468/talkheui/tree/master/documents/확장)에서 최신 버전의 확장 개발 방법을 확인하실 수 있습니다. 또는 documents/extension 디렉터리에서 현재 버전의 예제를 확인하실 수도 있습니다.
+[이곳](https://github.com/kmc7468/talkheui/tree/master/documents/확장)에서 최신 버전의 확장 개발 방법을 확인하실 수 있습니다. 또는 documents/확장 디렉터리에서 현재 버전의 예제를 확인하실 수도 있습니다.
 
 ## 외부 라이브러리
 다음의 외부 라이브러리들은 **별도 설치가 필요**합니다.
