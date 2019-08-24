@@ -7,7 +7,6 @@
 #include <th/aheui/Interpreter.hpp>
 #include <th/aheui/detail/Type.hpp>
 
-#include <boost/multiprecision/cpp_int.hpp>
 #include <nlohmann/json.hpp>
 
 namespace th::aheui {
