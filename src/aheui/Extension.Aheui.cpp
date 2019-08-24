@@ -54,9 +54,14 @@ namespace {
 	};
 }
 
+namespace {
+	
+}
+
 namespace th::aheui {
 	LuaExtension::LuaExtension()
 		: Extension(ExtensionType::Lua) {
+		m_Lua.AddInt128Class();
 	}
 	LuaExtension::LuaExtension(const std::string& path)
 		: LuaExtension() {

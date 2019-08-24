@@ -17,10 +17,10 @@ endif()
 set(USE_MULTIPRECISION FALSE CACHE BOOL "")
 
 if(${USE_MULTIPRECISION})
-	add_definitions(TH_USE_MULTIPRECISION)
+	add_definitions(-DTH_USE_MULTIPRECISION)
 	set(BOOST_INCLUDE_DIR "" CACHE PATH "")
 
-	if(${BOOST_INCLUDE_DIR} STREQUAL "")
+	if("${BOOST_INCLUDE_DIR}" STREQUAL "")
 		find_package(Boost REQUIRED)
 		if(${Boost_FOUND})
 			include_directories(${Boost_INCLUDE_DIRS})
