@@ -5,7 +5,9 @@
 #include <th/Zip.hpp>
 #include <th/aheui/CodePlane.hpp>
 #include <th/aheui/Interpreter.hpp>
+#include <th/aheui/detail/Type.hpp>
 
+#include <boost/multiprecision/cpp_int.hpp>
 #include <nlohmann/json.hpp>
 
 namespace th::aheui {
@@ -29,8 +31,8 @@ namespace th::aheui {
 		Extension& operator=(Extension&& extension) noexcept;
 
 	public:
-		virtual void Send(long long value) = 0;
-		virtual long long Receive() = 0;
+		virtual void Send(detail::Value value) = 0;
+		virtual detail::Value Receive() = 0;
 		virtual long long Count() = 0;
 		virtual long long Bytes() = 0;
 
@@ -55,8 +57,8 @@ namespace th::aheui {
 		LuaExtension& operator=(LuaExtension&& extension) noexcept;
 
 	public:
-		virtual void Send(long long value) override;
-		virtual long long Receive() override;
+		virtual void Send(detail::Value value) override;
+		virtual detail::Value Receive() override;
 		virtual long long Count() override;
 		virtual long long Bytes() override;
 

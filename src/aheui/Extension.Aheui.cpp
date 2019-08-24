@@ -73,15 +73,19 @@ namespace th::aheui {
 		return *this;
 	}
 
-	void LuaExtension::Send(long long value) {
+	void LuaExtension::Send(detail::Value value) {
 		m_Lua.GetGlobal("receive");
 		m_Lua.Push(value);
 		m_Lua.Call(1, 0);
 	}
-	long long LuaExtension::Receive() {
+	detail::Value LuaExtension::Receive() {
 		m_Lua.GetGlobal("send");
 		m_Lua.Call(0, 1);
+#ifdef TH_USE_MULTIPRECISION
+		return m_Lua.PopInteger128();
+#else
 		return m_Lua.PopInteger();
+#endif
 	}
 	long long LuaExtension::Count() {
 		m_Lua.GetGlobal("send_count");

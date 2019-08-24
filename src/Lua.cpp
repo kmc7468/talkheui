@@ -1,5 +1,6 @@
 #include <th/lua.hpp>
 
+#include <limits>
 #include <stdexcept>
 
 namespace th {
@@ -36,11 +37,48 @@ namespace th {
 	void Lua::Push(long long number) {
 		lua_pushinteger(m_State, number);
 	}
+	void Lua::Push(const char* string) {
+		lua_pushstring(m_State, string);
+	}
+#ifdef TH_USE_MULTIPRECISION
+	void Lua::Push(boost::multiprecision::int128_t number) {
+		if (number <= std::numeric_limits<long long>::max() &&
+			number >= std::numeric_limits<long long>::min()) {
+			Push(static_cast<long long>(number));
+		} else {
+			CreateTable(2);
+
+			Push("low");
+			Push(static_cast<long long>(number & 0xFFFFFFFFFFFFFFFF));
+			SetTable(-3);
+
+			Push("high");
+			Push(static_cast<long long>(number >> 64 & 0xFFFFFFFFFFFFFFFF));
+			SetTable(-3);
+		}
+	}
+#endif
 	long long Lua::PopInteger() {
 		const long long result = lua_tointeger(m_State, -1);
 		return lua_pop(m_State, 1), result;
 	}
+#ifdef TH_USE_MULTIPRECISION
+	boost::multiprecision::int128_t Lua::PopInteger128() {
+		if (lua_isinteger(m_State, -1)) {
+			return PopInteger();
+		} else {
+			return 0; // TODO
+		}
+	}
+#endif
 	void Lua::Call(int paramSize, int retSize) {
 		lua_call(m_State, paramSize, retSize);
+	}
+
+	void Lua::CreateTable(int elements) {
+		lua_createtable(m_State, 0, elements);
+	}
+	void Lua::SetTable(int index) {
+		lua_settable(m_State, index);
 	}
 }

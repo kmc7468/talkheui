@@ -51,13 +51,13 @@ namespace th::aheui {
 		return m_Data.size();
 	}
 	std::size_t Stack::Bytes() const noexcept {
-		return Count() * sizeof(long long);
+		return Count() * sizeof(detail::Value);
 	}
-	void Stack::Push(long long value) {
+	void Stack::Push(detail::Value value) {
 		m_Data.push_back(value);
 	}
-	long long Stack::Pop() {
-		const long long result = m_Data.back();
+	detail::Value Stack::Pop() {
+		const detail::Value result = m_Data.back();
 		return m_Data.pop_back(), result;
 	}
 	void Stack::Copy() {
@@ -96,13 +96,13 @@ namespace th::aheui {
 		return m_Data.size();
 	}
 	std::size_t Queue::Bytes() const noexcept {
-		return Count() * sizeof(long long);
+		return Count() * sizeof(detail::Value);
 	}
-	void Queue::Push(long long value) {
+	void Queue::Push(detail::Value value) {
 		m_Data.push_back(value);
 	}
-	long long Queue::Pop() {
-		const long long result = m_Data.front();
+	detail::Value Queue::Pop() {
+		const detail::Value result = m_Data.front();
 		return m_Data.pop_front(), result;
 	}
 	void Queue::Copy() {
@@ -139,11 +139,11 @@ namespace th::aheui {
 	std::size_t Pipe::Bytes() const noexcept {
 		return static_cast<std::size_t>(m_Extension->Bytes());
 	}
-	void Pipe::Push(long long value) {
+	void Pipe::Push(detail::Value value) {
 		m_Extension->Send(value);
 		m_RecentPushed = value;
 	}
-	long long Pipe::Pop() {
+	detail::Value Pipe::Pop() {
 		return m_Extension->Receive();
 	}
 	void Pipe::Copy() {

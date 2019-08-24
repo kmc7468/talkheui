@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma warning(disable: 4996)
+#endif
+
 /*=========================================================================*\
 * Auxiliar routines for class hierarchy manipulation
 * LuaSocket toolkit
