@@ -3,13 +3,13 @@
 #include <th/Extension.hpp>
 #include <th/Lua.hpp>
 #include <th/Zip.hpp>
-#include <th/aheui/CodePlane.hpp>
-#include <th/aheui/Interpreter.hpp>
-#include <th/aheui/detail/Type.hpp>
+#include <th/ah/CodePlane.hpp>
+#include <th/ah/Interpreter.hpp>
+#include <th/ah/detail/Type.hpp>
 
 #include <nlohmann/json.hpp>
 
-namespace th::aheui {
+namespace th::ah {
 	enum class ExtensionType {
 		Lua,
 	};

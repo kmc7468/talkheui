@@ -1,10 +1,10 @@
-#include <th/aheui/Storage.hpp>
+#include <th/ah/Storage.hpp>
 
-#include <th/aheui/Extension.hpp>
+#include <th/ah/Extension.hpp>
 
 #include <utility>
 
-namespace th::aheui {
+namespace th::ah {
 	Storage::Storage(std::string name) noexcept
 		: Memory(std::move(name)) {
 	}
@@ -23,7 +23,7 @@ namespace th::aheui {
 	}
 }
 
-namespace th::aheui {
+namespace th::ah {
 	Stack::Stack()
 		: Storage("Stack") {
 	}
@@ -68,7 +68,7 @@ namespace th::aheui {
 	}
 }
 
-namespace th::aheui {
+namespace th::ah {
 	Queue::Queue()
 		: Storage("Queue") {
 	}
@@ -113,7 +113,7 @@ namespace th::aheui {
 	}
 }
 
-namespace th::aheui {
+namespace th::ah {
 	Pipe::Pipe(Extension* extension)
 		: Storage("Pipe"), m_Extension(extension)
 	{}
