@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma warning(disable: 4133)
+#endif
+
 /*=========================================================================*\
 * UDP object
 * LuaSocket toolkit

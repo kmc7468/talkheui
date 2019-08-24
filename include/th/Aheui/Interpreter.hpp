@@ -2,6 +2,7 @@
 
 #include <th/interpreter.hpp>
 #include <th/aheui/CodePlane.hpp>
+#include <th/aheui/detail/Type.hpp>
 
 #include <cstddef>
 #include <optional>
@@ -45,7 +46,7 @@ namespace th::aheui {
 	class Interpreter final : public th::Interpreter {
 	private:
 		CodePlane m_Script;
-		std::optional<long long> m_Result;
+		std::optional<detail::Value> m_Result;
 
 	public:
 		Interpreter();
@@ -76,7 +77,7 @@ namespace th::aheui {
 
 	public:
 		const CodePlane& Script() const noexcept;
-		long long Result() const noexcept;
+		detail::Value Result() const noexcept;
 		bool HasResult() const noexcept;
 	};
 }

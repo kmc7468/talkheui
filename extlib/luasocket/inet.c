@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma warning(disable: 4133 4996)
+#endif
+
 /*=========================================================================*\
 * Internet domain functions
 * LuaSocket toolkit
