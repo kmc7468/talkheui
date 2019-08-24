@@ -97,7 +97,7 @@ namespace th {
 	}
 
 	std::string ReadAsUTF8(const std::string& path) {
-		std::ifstream file(path);
+		std::ifstream file(path, std::ios::binary);
 		if (!file) throw std::runtime_error("failed to open the file");
 		return ReadAsUTF8(file);
 	}

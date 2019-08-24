@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma warning(disable: 4127)
+#endif
+
 /**************************************************************************
  *
  * Copyright 2013-2014 RAD Game Tools and Valve Software

@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma warning(disable: 4133 4996)
+#endif
+
 /*=========================================================================*\
 * Socket compatibilization module for Win32
 * LuaSocket toolkit
