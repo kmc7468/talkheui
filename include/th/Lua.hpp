@@ -47,6 +47,8 @@ namespace th {
 #endif
 
 	private:
+		static int LuaGetTalkheuiVersion(lua_State* state);
+
 		static int LuaIsInt128Available(lua_State* state);
 #ifdef TH_USE_MULTIPRECISION
 		static boost::multiprecision::int128_t* LuaPushInt128(lua_State* state);

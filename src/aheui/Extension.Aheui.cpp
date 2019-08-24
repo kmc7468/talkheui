@@ -54,10 +54,6 @@ namespace {
 	};
 }
 
-namespace {
-	
-}
-
 namespace th::aheui {
 	LuaExtension::LuaExtension()
 		: Extension(ExtensionType::Lua) {

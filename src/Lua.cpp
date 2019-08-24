@@ -1,5 +1,6 @@
 #include <th/lua.hpp>
 
+#include <th/Config.hpp>
 #include <th/IOStream.hpp>
 
 #include <limits>
@@ -12,6 +13,9 @@ namespace th {
 		: m_State(luaL_newstate()) {
 		if (!m_State) throw std::runtime_error("failed to start a lua interpreter");
 		luaL_openlibs(m_State);
+
+		Push(LuaGetTalkheuiVersion);
+		SetGlobal("get_talkheui_version");
 
 		Push(LuaIsInt128Available);
 		SetGlobal("is_int128_available");
@@ -141,6 +145,17 @@ namespace th {
 		lua_setglobal(m_State, "Int128");
 	}
 #endif
+
+	int Lua::LuaGetTalkheuiVersion(lua_State* state) {
+		const int argNum = lua_gettop(state);
+		if (argNum == 0) {
+			lua_pushstring(state, TH_VERSION);
+		} else {
+			luaL_error(state, "get_talkheui_version too many arguments");
+		}
+		return 1;
+	}
+
 	int Lua::LuaIsInt128Available(lua_State* state) {
 #ifdef TH_USE_MULTIPRECISION
 		lua_pushboolean(state, true);
@@ -149,7 +164,6 @@ namespace th {
 #endif
 		return 1;
 	}
-
 #ifdef TH_USE_MULTIPRECISION
 	boost::multiprecision::int128_t* Lua::LuaPushInt128(lua_State* state) {
 		boost::multiprecision::int128_t* const result =
@@ -184,23 +198,23 @@ namespace th {
 	int Lua::LuaInt128Print(lua_State* state) {
 		const int argNum = lua_gettop(state);
 		if (argNum == 0) {
-			luaL_error(state, "Int128.new needs argument");
+			luaL_error(state, "Int128.print needs argument");
 		} else if (argNum == 1) {
 			WriteStdout(*static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128")));
 		} else {
-			luaL_error(state, "Int128.new too many arguments");
+			luaL_error(state, "Int128.print too many arguments");
 		}
 		return 0;
 	}
 	int Lua::LuaInt128PrintLn(lua_State* state) {
 		const int argNum = lua_gettop(state);
 		if (argNum == 0) {
-			luaL_error(state, "Int128.new needs argument");
+			luaL_error(state, "Int128.println needs argument");
 		} else if (argNum == 1) {
 			WriteStdout(*static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128")));
 			WriteStdout(U'\n');
 		} else {
-			luaL_error(state, "Int128.new too many arguments");
+			luaL_error(state, "Int128.println too many arguments");
 		}
 		return 0;
 	}
@@ -209,29 +223,29 @@ namespace th {
 		if (argNum == 0) {
 			*LuaPushInt128(state) = ReadInteger128Stdin();
 		} else {
-			luaL_error(state, "Int128.new too many arguments");
+			luaL_error(state, "Int128.read too many arguments");
 		}
 		return 1;
 	}
 	int Lua::LuaInt128GetLowQWord(lua_State* state) {
 		const int argNum = lua_gettop(state);
 		if (argNum == 0) {
-			luaL_error(state, "Int128.new needs argument");
+			luaL_error(state, "Int128.get_low_qword needs argument");
 		} else if (argNum == 1) {
 			lua_pushinteger(state, static_cast<long long>(*static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128")) & 0xFFFFFFFFFFFFFFFF));
 		} else {
-			luaL_error(state, "Int128.new too many arguments");
+			luaL_error(state, "Int128.get_low_qword too many arguments");
 		}
 		return 1;
 	}
 	int Lua::LuaInt128GetHighQWord(lua_State* state) {
 		const int argNum = lua_gettop(state);
 		if (argNum == 0) {
-			luaL_error(state, "Int128.new needs argument");
+			luaL_error(state, "Int128.get_high_qword needs argument");
 		} else if (argNum == 1) {
 			lua_pushinteger(state, static_cast<long long>(*static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128")) >> 64 & 0xFFFFFFFFFFFFFFFF));
 		} else {
-			luaL_error(state, "Int128.new too many arguments");
+			luaL_error(state, "Int128.get_high_qword too many arguments");
 		}
 		return 1;
 	}
