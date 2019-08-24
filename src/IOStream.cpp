@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma warning(disable: 4996)
+#endif
+
 #include <th/IOStream.hpp>
 
 #include <th/Encoding.hpp>
@@ -5,6 +9,8 @@
 #include <cstdio>
 #include <cwctype>
 #include <string>
+
+#include <boost/lexical_cast.hpp>
 
 #ifdef _WIN32
 #	include <fcntl.h>
@@ -39,6 +45,20 @@ namespace th {
 		std::fputs(integerStr.c_str(), stdout);
 #endif
 	}
+#ifdef TH_USE_MULTIPRECISION
+	void WriteStdout(boost::multiprecision::int128_t integer) noexcept {
+		const std::string integerStr = boost::lexical_cast<std::string>(integer);
+
+#ifdef _WIN32
+		const TextModeRAII raii(stdout);
+		for (char c : integerStr) {
+			std::fputwc(c, stdout);
+		}
+#else
+		std::fputs(integerStr.c_str(), stdout);
+#endif
+	}
+#endif
 	void WriteStdout(char32_t character) noexcept {
 #ifdef _WIN32
 		const TextModeRAII raii(stdout);
@@ -63,6 +83,50 @@ namespace th {
 		else return input;
 #endif
 	}
+#ifdef TH_USE_MULTIPRECISION
+	boost::multiprecision::int128_t ReadInteger128Stdin() noexcept {
+		std::string temp;
+		bool isFirst = true;
+
+#ifdef _WIN32
+		const TextModeRAII raii(stdin);
+		
+		while (true) {
+			const std::wint_t c = std::fgetwc(stdin);
+			if (c == WEOF) break;
+			else if (isFirst && std::iswspace(c)) continue;
+			else if (isFirst && (c == L'+') || (c == L'-')) {
+				isFirst = false;
+				temp += static_cast<char>(c);
+			} else if (std::iswdigit(c)) {
+				isFirst = false;
+				temp += static_cast<char>(c);
+			} else {
+				std::ungetwc(c, stdin);
+				break;
+			}
+		}
+#else
+		while (true) {
+			const int c = std::fgetc(stdin);
+			if (c == EOF) break;
+			else if (isFirst && std::isspace(c)) continue;
+			else if (isFirst && (c == '+') || (c == '-')) {
+				isFirst = false;
+				temp += static_cast<char>(c);
+			} else if (std::iswdigit(c)) {
+				isFirst = false;
+				temp += static_cast<char>(c);
+			} else {
+				std::ungetc(c, stdin);
+				break;
+			}
+		}
+#endif
+
+		return temp.empty() ? -1 : boost::multiprecision::int128_t(temp);
+	}
+#endif
 	long long ReadCharacterStdin() noexcept {
 #ifdef _WIN32
 		const TextModeRAII raii(stdin);

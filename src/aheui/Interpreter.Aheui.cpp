@@ -95,7 +95,7 @@ namespace th::aheui {
 
 		UpdateCursor(commandJaso.Jungsung);
 
-		static std::unordered_map<char32_t, long long> constants = {
+		static std::unordered_map<char32_t, int> constants = {
 			{ 0, 0 },
 			{ U'ㄱ', 2 },
 			{ U'ㄴ', 2 },
@@ -168,19 +168,19 @@ namespace th::aheui {
 		case U'ㅌ':
 		case U'ㄴ':
 		case U'ㄹ': {
-			static std::unordered_map<char32_t, long long(*)(long long, long long)> operators = {
-				{ U'ㄷ', [](long long a, long long b) { return a + b; } },
-				{ U'ㄸ', [](long long a, long long b) { return a * b; } },
-				{ U'ㅌ', [](long long a, long long b) { return a - b; } },
-				{ U'ㄴ', [](long long a, long long b) { return a / b; } },
-				{ U'ㄹ', [](long long a, long long b) { return a % b; } },
+			static std::unordered_map<char32_t, detail::Value(*)(detail::Value, detail::Value)> operators = {
+				{ U'ㄷ', [](detail::Value a, detail::Value b) { return a + b; } },
+				{ U'ㄸ', [](detail::Value a, detail::Value b) { return a * b; } },
+				{ U'ㅌ', [](detail::Value a, detail::Value b) { return a - b; } },
+				{ U'ㄴ', [](detail::Value a, detail::Value b) { return a / b; } },
+				{ U'ㄹ', [](detail::Value a, detail::Value b) { return a % b; } },
 			};
 
 			if (storage->Count() < 2) {
 				ReverseCursor();
 			} else {
-				const long long b = storage->Pop();
-				const long long a = storage->Pop();
+				const detail::Value b = storage->Pop();
+				const detail::Value a = storage->Pop();
 				storage->Push(operators[commandJaso.Chosung](a, b));
 			}
 			break;
@@ -192,7 +192,7 @@ namespace th::aheui {
 				break;
 			}
 
-			long long v = storage->Pop();
+			detail::Value v = storage->Pop();
 			if (commandJaso.Jongsung == U'ㅇ') {
 				WriteStdout(v);
 			} else if (commandJaso.Jongsung == U'ㅎ') {
@@ -202,9 +202,13 @@ namespace th::aheui {
 		}
 
 		case U'ㅂ': {
-			long long v;
+			detail::Value v;
 			if (commandJaso.Jongsung == U'ㅇ') {
+#ifdef TH_USE_MULTIPRECISION
+				v = ReadInteger128Stdin();
+#else
 				v = ReadIntegerStdin();
+#endif
 			} else if (commandJaso.Jongsung == U'ㅎ') {
 				v = ReadCharacterStdin();
 			} else {
@@ -248,8 +252,8 @@ namespace th::aheui {
 			if (storage->Count() < 2) {
 				ReverseCursor();
 			} else {
-				const long long b = storage->Pop();
-				const long long a = storage->Pop();
+				const detail::Value b = storage->Pop();
+				const detail::Value a = storage->Pop();
 				storage->Push(a >= b);
 			}
 			break;
@@ -351,7 +355,7 @@ namespace th::aheui {
 	const CodePlane& Interpreter::Script() const noexcept {
 		return m_Script;
 	}
-	long long Interpreter::Result() const noexcept {
+	detail::Value Interpreter::Result() const noexcept {
 		return m_Result.value();
 	}
 	bool Interpreter::HasResult() const noexcept {

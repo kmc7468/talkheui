@@ -1,6 +1,7 @@
 #pragma once
 
 #include <th/Memory.hpp>
+#include <th/aheui/detail/Type.hpp>
 
 #include <deque>
 
@@ -19,15 +20,15 @@ namespace th::aheui {
 		Storage& operator=(Storage&& storage) noexcept;
 
 	public:
-		virtual void Push(long long value) = 0;
-		virtual long long Pop() = 0;
+		virtual void Push(detail::Value value) = 0;
+		virtual detail::Value Pop() = 0;
 		virtual void Copy() = 0;
 		virtual void Swap() noexcept = 0;
 	};
 
 	class Stack final : public Storage {
 	private:
-		std::deque<long long> m_Data;
+		std::deque<detail::Value> m_Data;
 
 	public:
 		Stack();
@@ -42,15 +43,15 @@ namespace th::aheui {
 	public:
 		virtual std::size_t Count() const noexcept override;
 		virtual std::size_t Bytes() const noexcept override;
-		virtual void Push(long long value) override;
-		virtual long long Pop() override;
+		virtual void Push(detail::Value value) override;
+		virtual detail::Value Pop() override;
 		virtual void Copy() override;
 		virtual void Swap() noexcept override;
 	};
 
 	class Queue final : public Storage {
 	private:
-		std::deque<long long> m_Data;
+		std::deque<detail::Value> m_Data;
 
 	public:
 		Queue();
@@ -65,8 +66,8 @@ namespace th::aheui {
 	public:
 		virtual std::size_t Count() const noexcept override;
 		virtual std::size_t Bytes() const noexcept override;
-		virtual void Push(long long value) override;
-		virtual long long Pop() override;
+		virtual void Push(detail::Value value) override;
+		virtual detail::Value Pop() override;
 		virtual void Copy() override;
 		virtual void Swap() noexcept override;
 	};
@@ -76,7 +77,7 @@ namespace th::aheui {
 	class Pipe final : public Storage {
 	private:
 		Extension* m_Extension = nullptr;
-		long long m_RecentPushed = 0;
+		detail::Value m_RecentPushed = 0;
 
 	public:
 		Pipe(Extension* extension);
@@ -89,8 +90,8 @@ namespace th::aheui {
 	public:
 		virtual std::size_t Count() const noexcept override;
 		virtual std::size_t Bytes() const noexcept override;
-		virtual void Push(long long value) override;
-		virtual long long Pop() override;
+		virtual void Push(detail::Value value) override;
+		virtual detail::Value Pop() override;
 		virtual void Copy() override;
 		virtual void Swap() noexcept override;
 	};
