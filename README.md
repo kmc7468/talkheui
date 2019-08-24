@@ -26,6 +26,9 @@ $ make
 ```
 위 명령어를 차례대로 입력하면 가장 최신의 안정화 버전이 컴파일 됩니다. 만약 불안정화 버전을 포함하여 가장 최신 버전을 컴파일 하고 싶다면 `-b stable`을 `-b unstable`로 수정, 개발 버전을 포함하여 가장 최신 버전을 컴파일 하고 싶다면 `-b stable`을 삭제하면 됩니다.
 
+- 최대 최적화: cmake 명령어를 실행할 때 `-DCMAKE_CXX_FLAGS="-O4"`를 덧붙여 주세요. 일부 컴파일러에서는 지원되지 않을 수도 있습니다.
+- 128비트 정수 사용: cmake 명령어를 실행할 때 `-DUSE_MULTIPRECISION=TRUE`를 덧붙여 주세요. Boost C++ Libraries 설치가 필요합니다.
+
 ## 예제
 [이곳](https://github.com/kmc7468/talkheui/tree/master/examples)에서 최신 버전의 예제를 확인하실 수 있습니다. 또는 examples 디렉터리에서 현재 버전의 예제를 확인하실 수도 있습니다.
 
@@ -35,6 +38,7 @@ $ make
 ## 외부 라이브러리
 다음의 외부 라이브러리들은 **별도 설치가 필요**합니다.
 - [Boost C++ Libraries](https://www.boost.org)
+	- 128비트 정수 지원을 사용하지 않을 경우 필요하지 않습니다.
 
 다음의 외부 라이브러리들은 별도 설치가 필요하지 않습니다.
 - [JSON for Modern C++](https://github.com/nlohmann/json) version 3.6.1
