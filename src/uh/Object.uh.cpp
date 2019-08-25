@@ -1,8 +1,8 @@
-#include <th/unsuspected_hangeul/Object.hpp>
+#include <th/uh/Object.hpp>
 
 #include <utility>
 
-namespace th::unsuspected_hangeul {
+namespace th::uh {
 	Object::Object(double number) noexcept
 		: m_Data(number) {
 	}

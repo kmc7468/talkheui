@@ -4,7 +4,7 @@
 #include <variant>
 #include <vector>
 
-namespace th::unsuspected_hangeul {
+namespace th::uh {
 	enum class ObjectType {
 		Nil,
 		Number,
