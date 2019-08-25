@@ -4,7 +4,7 @@
 #	include <boost/multiprecision/cpp_int.hpp>
 #endif
 
-namespace th::aheui::detail {
+namespace th::ah::detail {
 	using Value =
 #ifdef TH_USE_MULTIPRECISION
 		boost::multiprecision::int128_t

@@ -1,5 +1,5 @@
 #include <th/Encoding.hpp>
-#include <th/Aheui/Interpreter.hpp>
+#include <th/ah/Interpreter.hpp>
 
 #include <cstdio>
 #include <iostream>
@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 	}
 #endif
 	
-	th::aheui::Interpreter i;
+	th::ah::Interpreter i;
 	std::string sc;
 
 	try {
