@@ -23,4 +23,19 @@ namespace th {
 
 		return { Chosungs[chosungIndex], Jungsungs[jungsungIndex], Jongsungs[jongsungIndex] };
 	}
+
+	int IsConsonant(char32_t c) noexcept {
+		if (0x1100 <= c && c <= 0x1112) return 0x1100;
+		else if (0x3131 <= c && c <= 0x314E) return 0x3131;
+		else if (0xFFA1 <= c && c <= 0xFFBE) return 0xFFA1;
+		else return 0;
+	}
+	char32_t NormalizeConsonant(char32_t consonant) noexcept {
+		assert(IsConsonant(consonant));
+
+		static constexpr char32_t Consonants[] =
+			{ U'ㄱ', U'ㄲ', U'ㄳ', U'ㄴ', U'ㄵ', U'ㄶ', U'ㄷ', U'ㄸ', U'ㄹ', U'ㄺ', U'ㄻ', U'ㄼ', U'ㄽ', U'ㄾ', U'ㄿ', U'ㅀ', U'ㅁ', U'ㅂ', U'ㅃ', U'ㅄ', U'ㅅ', U'ㅆ', U'ㅇ', U'ㅈ', U'ㅉ', U'ㅊ', U'ㅋ', U'ㅌ', U'ㅍ', U'ㅎ' };
+		
+		return Consonants[consonant - IsConsonant(consonant)];
+	}
 }
