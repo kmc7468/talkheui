@@ -9,7 +9,15 @@
 #	include <io.h>
 #endif
 
+#ifdef _DEBUG
+void test();
+#endif
+
 int main(int argc, char* argv[]) {
+#ifdef _DEBUG
+	test();
+#endif
+
 	if (argc <= 1) {
 		std::cout << "Usage: ./talkheui <Aheui code path> [Extension path]\n";
 		return 1;
@@ -49,3 +57,12 @@ int main(int argc, char* argv[]) {
 	i.Run(sc);
 	return static_cast<int>(i.Result());
 }
+
+#ifdef _DEBUG
+#include <th/Int128.hpp>
+
+void test() {
+	th::Int128 a = 5;
+	th::Int128 b = -5;
+}
+#endif
