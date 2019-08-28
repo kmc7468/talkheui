@@ -62,7 +62,5 @@ int main(int argc, char* argv[]) {
 #include <th/Int128.hpp>
 
 void test() {
-	th::Int128 a = 5;
-	th::Int128 b = -5;
 }
 #endif

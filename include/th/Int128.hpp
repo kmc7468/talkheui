@@ -30,9 +30,17 @@ namespace th {
 		bool operator>=(const Int128& integer) const noexcept;
 		bool operator<(const Int128& integer) const noexcept;
 		bool operator<=(const Int128& integer) const noexcept;
+		Int128& operator+=(const Int128& integer) noexcept;
+		Int128& operator-=(const Int128& integer) noexcept;
+		Int128& operator*=(const Int128& integer) noexcept;
+		Int128& operator/=(const Int128& integer) noexcept;
+		Int128& operator%=(const Int128& integer) noexcept;
 
 	public:
 		std::uint64_t GetLowQword() const noexcept;
 		std::int64_t GetHighQword() const noexcept;
+
+	private:
+		static std::uint64_t MultiplyUInt64(std::uint64_t* a, const std::uint64_t* b) noexcept;
 	};
 }
