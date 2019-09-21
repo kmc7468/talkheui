@@ -58,6 +58,37 @@ namespace th::uh {
 }
 
 namespace th::uh {
+	IO::IO(Object object) noexcept
+		: m_Objects({ std::move(object) }) {
+	}
+	IO::IO(std::vector<Object> objects) noexcept
+		: m_Objects(std::move(objects)) {
+	}
+	IO::IO(const IO& io)
+		: m_Objects(std::move(io.m_Objects)) {
+	}
+	IO::IO(IO&& io) noexcept
+		: m_Objects(std::move(io.m_Objects)) {
+	}
+
+	IO& IO::operator=(const IO& io) {
+		m_Objects = io.m_Objects;
+		return *this;
+	}
+	IO& IO::operator=(IO&& io) noexcept {
+		m_Objects = std::move(io.m_Objects);
+		return *this;
+	}
+
+	void IO::AddObject(Object object) {
+		m_Objects.push_back(std::move(object));
+	}
+	const std::vector<Object>& IO::GetObjects() const noexcept {
+		return m_Objects;
+	}
+}
+
+namespace th::uh {
 	Object::Object(double number) noexcept
 		: m_Data(number) {
 	}
@@ -138,5 +169,11 @@ namespace th::uh {
 	}
 	const std::vector<Object>& Object::GetAsList() const noexcept {
 		return std::get<std::vector<Object>>(m_Data);
+	}
+	const Closure& Object::GetAsClosure() const noexcept {
+		return std::get<Closure>(m_Data);
+	}
+	const IO& Object::GetAsIO() const noexcept {
+		return std::get<IO>(m_Data);
 	}
 }

@@ -58,9 +58,30 @@ namespace th::uh {
 		IO,
 	};
 
+	class IO final {
+	private:
+		std::vector<Object> m_Objects;
+
+	public:
+		IO() noexcept = default;
+		IO(Object object) noexcept;
+		IO(std::vector<Object> objects) noexcept;
+		IO(const IO& io);
+		IO(IO&& ios) noexcept;
+		~IO() = default;
+
+	public:
+		IO& operator=(const IO& io);
+		IO& operator=(IO&& io) noexcept;
+
+	public:
+		void AddObject(Object object);
+		const std::vector<Object>& GetObjects() const noexcept;
+	};
+
 	class Object final {
 	private:
-		std::variant<std::monostate, double, bool, std::string, std::vector<Object>> m_Data;
+		std::variant<std::monostate, double, bool, std::string, std::vector<Object>, Closure, IO> m_Data;
 
 	public:
 		Object() noexcept = default;
@@ -94,5 +115,7 @@ namespace th::uh {
 		bool GetAsBoolean() const noexcept;
 		const std::string& GetAsString() const noexcept;
 		const std::vector<Object>& GetAsList() const noexcept;
+		const Closure& GetAsClosure() const noexcept;
+		const IO& GetAsIO() const noexcept;
 	};
 }
