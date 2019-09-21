@@ -35,5 +35,10 @@ namespace th::uh {
 		void Clear() noexcept;
 		bool IsEmpty() const noexcept;
 		void Parse(const std::u32string& code);
+
+		Command At(int word, int index) const noexcept;
+		const std::vector<Command> At(int word) const noexcept;
+
+		std::size_t Words() const noexcept;
 	};
 }

@@ -100,4 +100,15 @@ namespace th::uh {
 			m_Words.erase(m_Words.end() - 1);
 		}
 	}
+
+	Command Program::At(int word, int index) const noexcept {
+		return m_Words[static_cast<std::size_t>(word)][static_cast<std::size_t>(index)];
+	}
+	const std::vector<Command> Program::At(int word) const noexcept {
+		return m_Words[static_cast<std::size_t>(word)];
+	}
+
+	std::size_t Program::Words() const noexcept {
+		return m_Words.size();
+	}
 }
