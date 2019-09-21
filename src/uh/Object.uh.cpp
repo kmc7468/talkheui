@@ -22,6 +22,22 @@ namespace th::uh {
 		: m_Data(std::move(object.m_Data)) {
 	}
 	
+	Object& Object::operator=(double number) noexcept {
+		m_Data = number;
+		return *this;
+	}
+	Object& Object::operator=(bool boolean) noexcept {
+		m_Data = boolean;
+		return *this;
+	}
+	Object& Object::operator=(std::string string) noexcept {
+		m_Data = std::move(string);
+		return *this;
+	}
+	Object& Object::operator=(std::vector<Object> list) noexcept {
+		m_Data = std::move(list);
+		return *this;
+	}
 	Object& Object::operator=(const Object& object) {
 		m_Data = object.m_Data;
 		return *this;
@@ -54,5 +70,18 @@ namespace th::uh {
 	}
 	bool Object::IsIO() const noexcept {
 		return Type() == ObjectType::IO;
+	}
+
+	double Object::GetAsNumber() const noexcept {
+		return std::get<double>(m_Data);
+	}
+	bool Object::GetAsBoolean() const noexcept {
+		return std::get<bool>(m_Data);
+	}
+	const std::string& Object::GetAsString() const noexcept {
+		return std::get<std::string>(m_Data);
+	}
+	const std::vector<Object>& Object::GetAsList() const noexcept {
+		return std::get<std::vector<Object>>(m_Data);
 	}
 }

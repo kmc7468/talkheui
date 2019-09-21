@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -30,6 +31,10 @@ namespace th::uh {
 		~Object() = default;
 
 	public:
+		Object& operator=(double number) noexcept;
+		Object& operator=(bool boolean) noexcept;
+		Object& operator=(std::string string) noexcept;
+		Object& operator=(std::vector<Object> list) noexcept;
 		Object& operator=(const Object& object);
 		Object& operator=(Object&& object) noexcept;
 
@@ -42,5 +47,10 @@ namespace th::uh {
 		bool IsList() const noexcept;
 		bool IsClosure() const noexcept;
 		bool IsIO() const noexcept;
+
+		double GetAsNumber() const noexcept;
+		bool GetAsBoolean() const noexcept;
+		const std::string& GetAsString() const noexcept;
+		const std::vector<Object>& GetAsList() const noexcept;
 	};
 }
