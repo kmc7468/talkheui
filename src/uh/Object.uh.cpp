@@ -1,5 +1,6 @@
 #include <th/uh/Object.hpp>
 
+#include <cassert>
 #include <utility>
 
 namespace th::uh {
@@ -31,6 +32,55 @@ namespace th::uh {
 		m_Function = std::move(closure.m_Function);
 		m_Recursives = std::move(closure.m_Recursives);
 		return *this;
+	}
+	bool Object::operator==(const Object& object) const noexcept {
+		if (Type() != object.Type()) return false;
+		switch (Type()) {
+		case ObjectType::Number:
+			return GetAsNumber() == object.GetAsNumber();
+
+		case ObjectType::Boolean:
+			return GetAsBoolean() == object.GetAsBoolean();
+
+		case ObjectType::String:
+			return GetAsString() == object.GetAsString();
+
+		case ObjectType::List: {
+			const std::vector<Object>& a = GetAsList();
+			const std::vector<Object>& b = object.GetAsList();
+			
+			if (a.size() != b.size()) return false;
+			for (std::size_t i = 0; i < a.size(); ++i) {
+				if (a[i] != b[i]) return false;
+			}
+			return true;
+		}
+
+		case ObjectType::Closure: {
+			const Closure& a = GetAsClosure();
+			const Closure& b = GetAsClosure();
+
+			return a.GetRecursives()[0] == b.GetRecursives()[0];
+		}
+
+		case ObjectType::IO: {
+			const std::vector<Object>& a = GetAsIO().GetObjects();
+			const std::vector<Object>& b = GetAsIO().GetObjects();
+
+			if (a.size() != b.size()) return false;
+			for (std::size_t i = 0; i < a.size(); ++i) {
+				if (a[i] != b[i]) return false;
+			}
+			return true;
+		}
+
+		default:
+			assert(false);
+			return false;
+		}
+	}
+	bool Object::operator!=(const Object& object) const noexcept {
+		return !(*this == object);
 	}
 
 	FunctionType Closure::Type() const noexcept {

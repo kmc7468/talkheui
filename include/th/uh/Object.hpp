@@ -104,6 +104,8 @@ namespace th::uh {
 		Object& operator=(IO io) noexcept;
 		Object& operator=(const Object& object);
 		Object& operator=(Object&& object) noexcept;
+		bool operator==(const Object& object) const noexcept;
+		bool operator!=(const Object& object) const noexcept;
 
 	public:
 		ObjectType Type() const noexcept;
