@@ -3,6 +3,61 @@
 #include <utility>
 
 namespace th::uh {
+	Closure::Closure(std::vector<Command> scriptFunction) noexcept
+		: m_Function(std::move(scriptFunction)), m_Recursives({ 0 }) {
+	}
+	Closure::Closure(std::vector<Command> scriptFunction, std::vector<int> recursives) noexcept
+		: m_Function(std::move(scriptFunction)), m_Recursives(std::move(recursives)) {
+	}
+	Closure::Closure(NativeFunction nativeFunction)
+		: m_Function(std::move(nativeFunction)), m_Recursives({ 0 }) {
+	}
+	Closure::Closure(NativeFunction nativeFunction, std::vector<int> recursives)
+		: m_Function(std::move(nativeFunction)), m_Recursives(std::move(recursives)) {
+	}
+	Closure::Closure(const Closure& closure)
+		: m_Function(closure.m_Function), m_Recursives(closure.m_Recursives) {
+	}
+	Closure::Closure(Closure&& closure)
+		: m_Function(std::move(closure.m_Function)), m_Recursives(std::move(closure.m_Recursives)) {
+	}
+
+	Closure& Closure::operator=(const Closure& closure) {
+		m_Function = closure.m_Function;
+		m_Recursives = closure.m_Recursives;
+		return *this;
+	}
+	Closure& Closure::operator=(Closure&& closure) {
+		m_Function = std::move(closure.m_Function);
+		m_Recursives = std::move(closure.m_Recursives);
+		return *this;
+	}
+
+	FunctionType Closure::Type() const noexcept {
+		return static_cast<FunctionType>(m_Function.index());
+	}
+	bool Closure::HasScriptFunction() const noexcept {
+		return Type() == FunctionType::Script;
+	}
+	bool Closure::HasNativeFunction() const noexcept {
+		return Type() == FunctionType::Native;
+	}
+	const std::vector<int>& Closure::GetRecursives() const noexcept {
+		return m_Recursives;
+	}
+	void Closure::SetRecursives(std::vector<int> newRecursives) noexcept {
+		m_Recursives = std::move(newRecursives);
+	}
+
+	const std::vector<Command>& Closure::GetAsScriptFunction() const noexcept {
+		return std::get<std::vector<Command>>(m_Function);
+	}
+	const NativeFunction& Closure::GetAsNativeFunction() const noexcept {
+		return std::get<NativeFunction>(m_Function);
+	}
+}
+
+namespace th::uh {
 	Object::Object(double number) noexcept
 		: m_Data(number) {
 	}
