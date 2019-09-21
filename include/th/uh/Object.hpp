@@ -67,7 +67,7 @@ namespace th::uh {
 		IO(Object object) noexcept;
 		IO(std::vector<Object> objects) noexcept;
 		IO(const IO& io);
-		IO(IO&& ios) noexcept;
+		IO(IO&& io) noexcept;
 		~IO() = default;
 
 	public:
@@ -89,6 +89,8 @@ namespace th::uh {
 		Object(bool boolean) noexcept;
 		Object(std::string string) noexcept;
 		Object(std::vector<Object> list) noexcept;
+		Object(Closure closure);
+		Object(IO io) noexcept;
 		Object(const Object& object);
 		Object(Object&& object) noexcept;
 		~Object() = default;
@@ -98,6 +100,8 @@ namespace th::uh {
 		Object& operator=(bool boolean) noexcept;
 		Object& operator=(std::string string) noexcept;
 		Object& operator=(std::vector<Object> list) noexcept;
+		Object& operator=(Closure closure);
+		Object& operator=(IO io) noexcept;
 		Object& operator=(const Object& object);
 		Object& operator=(Object&& object) noexcept;
 

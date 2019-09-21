@@ -101,6 +101,12 @@ namespace th::uh {
 	Object::Object(std::vector<Object> list) noexcept
 		: m_Data(std::move(list)) {
 	}
+	Object::Object(Closure closure)
+		: m_Data(std::move(closure)) {
+	}
+	Object::Object(IO io) noexcept
+		: m_Data(std::move(io)) {
+	}
 	Object::Object(const Object& object)
 		: m_Data(object.m_Data) {
 	}
@@ -122,6 +128,14 @@ namespace th::uh {
 	}
 	Object& Object::operator=(std::vector<Object> list) noexcept {
 		m_Data = std::move(list);
+		return *this;
+	}
+	Object& Object::operator=(Closure closure) {
+		m_Data = std::move(closure);
+		return *this;
+	}
+	Object& Object::operator=(IO io) noexcept {
+		m_Data = std::move(io);
 		return *this;
 	}
 	Object& Object::operator=(const Object& object) {
