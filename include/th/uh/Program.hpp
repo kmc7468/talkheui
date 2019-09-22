@@ -12,8 +12,8 @@ namespace th::uh {
 		Mieum,
 		Bieup,
 		Siot,
-		Ieung,
 		Jieut,
+		Ieung,
 		Hieut,
 	};
 

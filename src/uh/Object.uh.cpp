@@ -36,6 +36,9 @@ namespace th::uh {
 	bool Object::operator==(const Object& object) const noexcept {
 		if (Type() != object.Type()) return false;
 		switch (Type()) {
+		case ObjectType::Nil:
+			return true;
+
 		case ObjectType::Number:
 			return GetAsNumber() == object.GetAsNumber();
 
