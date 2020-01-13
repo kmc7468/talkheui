@@ -5,7 +5,7 @@
 
 #include <u5e/basic_grapheme.hpp>
 
-namespace th::aheui {
+namespace th::ah {
 	class CodePlane final {
 	private:
 		std::vector<std::u32string> m_Lines;

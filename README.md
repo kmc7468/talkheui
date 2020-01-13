@@ -17,6 +17,9 @@
 $ ./talkheui <아희 코드 경로> [확장 경로]
 ```
 
+## 다운로드
+Windows와 Ubuntu 사용자는 소스 코드를 직접 컴파일 하실 필요 없이 실행 파일을 바로 다운로드 하실 수 있습니다. [이곳](https://github.com/kmc7468/talkheui/releases)에서 최신 버전의 실행 파일을 확인해 보세요.
+
 ## 컴파일
 ```
 $ git clone -b stable https://github.com/kmc7468/talkheui.git
@@ -26,6 +29,7 @@ $ make
 ```
 위 명령어를 차례대로 입력하면 가장 최신의 안정화 버전이 컴파일 됩니다. 만약 불안정화 버전을 포함하여 가장 최신 버전을 컴파일 하고 싶다면 `-b stable`을 `-b unstable`로 수정, 개발 버전을 포함하여 가장 최신 버전을 컴파일 하고 싶다면 `-b stable`을 삭제하면 됩니다.
 
+### 컴파일 옵션
 - 최대 최적화: cmake 명령어를 실행할 때 `-DCMAKE_CXX_FLAGS="-O4"`를 덧붙여 주세요. 일부 컴파일러에서는 지원되지 않을 수도 있습니다.
 - 128비트 정수 사용: cmake 명령어를 실행할 때 `-DUSE_MULTIPRECISION=TRUE`를 덧붙여 주세요. Boost C++ Libraries 설치가 필요합니다.
 

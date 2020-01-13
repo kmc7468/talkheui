@@ -2,13 +2,13 @@
 #	pragma warning(disable: 4456)
 #endif
 
-#include <th/aheui/CodePlane.hpp>
+#include <th/ah/CodePlane.hpp>
 
 #include <utility>
 
 #include <u5e/basic_grapheme_iterator.hpp>
 
-namespace th::aheui {
+namespace th::ah {
 	CodePlane::CodePlane(const std::u32string& code) {
 		Parse(code);
 	}

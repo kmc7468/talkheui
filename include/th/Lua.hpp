@@ -75,6 +75,7 @@ namespace th {
 		static int LuaInt128BitRightShift(lua_State* state);
 		static int LuaInt128BitNot(lua_State* state);
 		static int LuaInt128ToString(lua_State* state);
+		static int LuaInt128ToInt128(lua_State* state);
 #endif
 	};
 }

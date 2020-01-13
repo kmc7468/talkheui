@@ -3,13 +3,13 @@
 #endif
 
 #include <th/Encoding.hpp>
-#include <th/aheui/Extension.hpp>
+#include <th/ah/Extension.hpp>
 
 #include <algorithm>
 #include <cctype>
 #include <utility>
 
-namespace th::aheui {
+namespace th::ah {
 	Extension::Extension(ExtensionType type)
 		: m_Type(type) {
 	}
@@ -54,7 +54,7 @@ namespace {
 	};
 }
 
-namespace th::aheui {
+namespace th::ah {
 	LuaExtension::LuaExtension()
 		: Extension(ExtensionType::Lua) {
 #ifdef TH_USE_MULTIPRECISION
@@ -120,7 +120,7 @@ namespace th::aheui {
 	}
 }
 
-namespace th::aheui {
+namespace th::ah {
 	Extension* OpenExtension(const std::string& path) {
 		ZipReader zip(path);
 

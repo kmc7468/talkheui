@@ -1,17 +1,17 @@
-﻿#include <th/aheui/Interpreter.hpp>
+﻿#include <th/ah/Interpreter.hpp>
 
 #include <th/Encoding.hpp>
 #include <th/Hangul.hpp>
 #include <th/IOStream.hpp>
-#include <th/aheui/Extension.hpp>
-#include <th/aheui/Storage.hpp>
+#include <th/ah/Extension.hpp>
+#include <th/ah/Storage.hpp>
 
 #include <cstdio>
 #include <unordered_map>
 
 #include <u5e/basic_grapheme.hpp>
 
-namespace th::aheui {
+namespace th::ah {
 	RuntimeState::RuntimeState() {
 		Reset();
 	}
@@ -34,10 +34,10 @@ namespace th::aheui {
 		DY = 1;
 	}
 
-	aheui::Extension* RuntimeState::GetConstructedExtension() const noexcept {
+	ah::Extension* RuntimeState::GetConstructedExtension() const noexcept {
 		return m_Extension;
 	}
-	void RuntimeState::ConstructPipe(aheui::Extension* extension) {
+	void RuntimeState::ConstructPipe(ah::Extension* extension) {
 		delete m_Memories.back();
 
 		if (extension) {
@@ -50,7 +50,7 @@ namespace th::aheui {
 	}
 }
 
-namespace th::aheui {
+namespace th::ah {
 	Interpreter::Interpreter()
 		: th::Interpreter("Aheui") {
 		State(new RuntimeState());
@@ -85,7 +85,7 @@ namespace th::aheui {
 		MoveCursor();
 
 		RuntimeState* const s = static_cast<RuntimeState*>(State());
-		Storage* const storage = static_cast<aheui::Storage*>(s->m_Memories[s->SelectedStorage]);
+		Storage* const storage = static_cast<ah::Storage*>(s->m_Memories[s->SelectedStorage]);
 		
 		u5e::basic_grapheme<std::u32string> commandGrp = m_Script.At(s->X, s->Y);
 		if (commandGrp.codepoint_end() - commandGrp.codepoint_begin() >= 2) return;
@@ -243,7 +243,7 @@ namespace th::aheui {
 				ReverseCursor();
 			} else {
 				const int to = storages[commandJaso.Jongsung];
-				static_cast<aheui::Storage*>(s->m_Memories[static_cast<std::size_t>(to)])->Push(storage->Pop());
+				static_cast<ah::Storage*>(s->m_Memories[static_cast<std::size_t>(to)])->Push(storage->Pop());
 			}
 			break;
 		}
@@ -269,7 +269,7 @@ namespace th::aheui {
 
 	void Interpreter::ConstructPipe(const std::string& path) {
 		RuntimeState* const s = static_cast<RuntimeState*>(State());
-		s->ConstructPipe(static_cast<aheui::Extension*>(const_cast<th::Extension*>(Extensions().at(path))));
+		s->ConstructPipe(static_cast<ah::Extension*>(const_cast<th::Extension*>(Extensions().at(path))));
 	}
 	void Interpreter::DeconstructPipe() {
 		RuntimeState* const s = static_cast<RuntimeState*>(State());

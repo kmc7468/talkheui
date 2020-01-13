@@ -1,11 +1,11 @@
 #pragma once
 
 #include <th/Memory.hpp>
-#include <th/aheui/detail/Type.hpp>
+#include <th/ah/detail/Type.hpp>
 
 #include <deque>
 
-namespace th::aheui {
+namespace th::ah {
 	class Storage : public Memory {
 	public:
 		virtual ~Storage() override = default;
