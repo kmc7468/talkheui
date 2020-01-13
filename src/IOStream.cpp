@@ -10,7 +10,9 @@
 #include <cwctype>
 #include <string>
 
-#include <boost/lexical_cast.hpp>
+#ifdef TH_USE_MULTIPRECISION
+#	include <boost/lexical_cast.hpp>
+#endif
 
 #ifdef _WIN32
 #	include <fcntl.h>

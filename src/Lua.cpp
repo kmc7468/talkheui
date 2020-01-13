@@ -6,7 +6,9 @@
 #include <limits>
 #include <stdexcept>
 
-#include <boost/lexical_cast.hpp>
+#ifdef TH_USE_MULTIPRECISION
+#	include <boost/lexical_cast.hpp>
+#endif
 
 namespace th {
 	Lua::Lua()
