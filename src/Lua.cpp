@@ -125,6 +125,7 @@ namespace th {
 			{ "__shl", LuaInt128BitLeftShift },
 			{ "__shr", LuaInt128BitRightShift },
 			{ "__bnot", LuaInt128BitNot },
+			{ "__tostring", LuaInt128ToString },
 			{ nullptr, nullptr },
 		};
 
@@ -143,6 +144,9 @@ namespace th {
 		lua_setmetatable(m_State, tableId);
 
 		lua_setglobal(m_State, "Int128");
+
+		Push(LuaInt128ToInt128);
+		SetGlobal("to_int128");
 	}
 #endif
 
@@ -179,6 +183,8 @@ namespace th {
 		} else if (argNum == 1) {
 			if (lua_isinteger(state, -1)) {
 				*LuaPushInt128(state) = luaL_checkinteger(state, -2);
+			} else if (lua_isstring(state, -1)) {
+				*LuaPushInt128(state) = boost::multiprecision::int128_t(luaL_checkstring(state, -2));
 			} else if(lua_isuserdata(state, -1)) {
 				*LuaPushInt128(state) = *static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -2, "Int128"));
 			} else {
@@ -346,6 +352,11 @@ namespace th {
 	int Lua::LuaInt128ToString(lua_State* state) {
 		boost::multiprecision::int128_t* const value = static_cast<boost::multiprecision::int128_t*>(luaL_checkudata(state, -1, "Int128"));
 		lua_pushstring(state, boost::lexical_cast<std::string>(*value).c_str());
+		return 1;
+	}
+	int Lua::LuaInt128ToInt128(lua_State* state) {
+		const boost::multiprecision::int128_t value(luaL_checkstring(state, -1));
+		*LuaPushInt128(state) = std::move(value);
 		return 1;
 	}
 #endif

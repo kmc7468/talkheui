@@ -3,7 +3,7 @@
 #endif
 
 #include <th/Extension.hpp>
-#include <th/Aheui/Extension.hpp>
+#include <th/ah/Extension.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -165,7 +165,7 @@ namespace th {
 
 		switch (targetEnum) {
 		case ExtensionTarget::Aheui:
-			return aheui::OpenExtension(path);
+			return ah::OpenExtension(path);
 		
 		default:
 			return nullptr;

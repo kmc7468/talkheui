@@ -1,21 +1,21 @@
 #pragma once
 
 #include <th/interpreter.hpp>
-#include <th/aheui/CodePlane.hpp>
-#include <th/aheui/detail/Type.hpp>
+#include <th/ah/CodePlane.hpp>
+#include <th/ah/detail/Type.hpp>
 
 #include <cstddef>
 #include <optional>
 #include <string>
 #include <string_view>
 
-namespace th::aheui {
+namespace th::ah {
 	class Extension;
 	class Interpreter;
 
 	class RuntimeState final : public th::RuntimeState
 	{
-		friend class aheui::Interpreter;
+		friend class ah::Interpreter;
 
 	public:
 		int X = 0, Y = -1;
@@ -23,7 +23,7 @@ namespace th::aheui {
 		std::size_t SelectedStorage = 0;
 
 	private:
-		aheui::Extension* m_Extension = nullptr;
+		ah::Extension* m_Extension = nullptr;
 
 	public:
 		virtual ~RuntimeState() override = default;
@@ -39,8 +39,8 @@ namespace th::aheui {
 		virtual void ResetStep() override;
 
 	public:
-		aheui::Extension* GetConstructedExtension() const noexcept;
-		void ConstructPipe(aheui::Extension* extension);
+		ah::Extension* GetConstructedExtension() const noexcept;
+		void ConstructPipe(ah::Extension* extension);
 	};
 
 	class Interpreter final : public th::Interpreter {
