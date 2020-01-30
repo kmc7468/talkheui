@@ -4,8 +4,7 @@
 #include <string>
 
 namespace th {
-	class Memory
-	{
+	class Memory {
 	private:
 		std::string m_Name;
 

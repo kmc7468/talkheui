@@ -1,4 +1,5 @@
 #include <th/Encoding.hpp>
+#include <th/ProgramOption.hpp>
 #include <th/ah/Interpreter.hpp>
 
 #include <cstdio>
@@ -11,10 +12,7 @@
 
 int main(int argc, char* argv[]) {
 	if (argc <= 1) {
-		std::cout << "Usage: ./talkheui <Aheui code path> [Extension path]\n";
-		return 1;
-	} else if (argc >= 4) {
-		std::cout << "There are too many arguments\n";
+		std::cout << "Usage: ./talkheui --help\n";
 		return 1;
 	}
 
@@ -24,24 +22,33 @@ int main(int argc, char* argv[]) {
 		std::fwrite(&temp, sizeof(temp), 1, stdout);
 	}
 #endif
+
+	th::ProgramOption option;
+	if (!option.Parse(argc, argv)) {
+		std::cout << option.Message() << '\n';
+		return 1;
+	}
 	
 	th::ah::Interpreter i;
 	std::string sc;
 
 	try {
-		sc = th::ReadAsUTF8(argv[1]);
+		sc = th::ReadAsUTF8(option.SourcePath);
 	} catch (...) {
-		std::cout << "Failed to open the aheui code '" << argv[1] << "'\n";
+		std::cout << "error: " << option.SourcePath << ": failed to read this source.\n";
 		return 1;
 	}
 
-	if (argc == 3) {
-		const std::string ex = argv[2];
+	if (option.ExtendedSource) {
+		// TODO
+	}
+
+	if (!option.ExtensionPath.empty()) {
 		try {
-			i.LoadExtension(ex);
-			i.ConstructPipe(ex);
+			i.LoadExtension(option.ExtensionPath);
+			i.ConstructPipe(option.ExtensionPath);
 		} catch (...) {
-			std::cout << "Failed to open the extension '" << argv[2] << "'\n";
+			std::cout << "error: " << option.ExtensionPath << ": failed to load this extension.\n";
 			return 1;
 		}
 	}
